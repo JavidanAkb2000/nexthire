@@ -162,7 +162,7 @@ This project follows **Scrum methodology** with sprint-based development.
 
 ---
 
-## roject Status
+## Project Status
 This is an **initial README (SCRUM-13)**.
 
 The following will be added later:
