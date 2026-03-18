@@ -105,13 +105,12 @@ Visual representation of application stages:
 - uv
 
 ---
+## 📁 Project Structure
 
-## Project Structure
-/frontend → React frontend application
-/backend → Django backend API
-/ai_service → FastAPI AI resume analyzer
-/docs → documentation and notes
-
+- `/frontend` — React frontend application
+- `/backend` — Django backend API
+- `/ai_service` — FastAPI AI resume analyzer
+- `/docs` — documentation and notes
 
 ---
 
