@@ -179,4 +179,5 @@ To build a modern, user-friendly platform that helps job seekers:
 - improve their resumes using AI  
 - increase their chances of getting hired  
 
+# All rights reserved
 ---
