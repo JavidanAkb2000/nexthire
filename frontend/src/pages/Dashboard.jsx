@@ -1,6 +1,8 @@
 import { useDeferredValue, useState } from 'react';
+import { Link } from 'react-router-dom';
 import ThemeToggle from '../components/ThemeToggle';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../context/useTheme';
+import { useProfile } from '../context/useProfile';
 
 const stats = [
   { label: 'Total applied', value: '18', delta: '+3 this week', tone: 'blue' },
@@ -137,6 +139,7 @@ function SidebarIcon({ type, active }) {
 
 export default function Dashboard() {
   const { isDark } = useTheme();
+  const { profile } = useProfile();
   const [search, setSearch] = useState('');
   useDeferredValue(search);
 
@@ -182,50 +185,66 @@ export default function Dashboard() {
 
           <nav className="mt-14 flex flex-1 flex-col gap-4 px-[10px]">
             {[
-              ['Dashboard', 'dashboard', true],
-              ['Applications', 'applications', false],
-              ['Analyzer', 'analyzer', false],
-              ['Performance', 'performance', false],
-              ['Reminders', 'reminders', false],
-            ].map(([label, icon, active]) => (
-              <div
-                key={label}
-                className={`flex min-h-[56px] items-center gap-4 rounded-[16px] border px-6 py-4 ${
-                  active
-                    ? 'relative border-[#504B63] bg-[#2C2345] text-[#8B5CF6]'
-                    : isDark
-                    ? 'border-transparent text-white/90'
-                    : 'border-transparent text-[#171421]'
-                }`}
-              >
-                {active && <span className="absolute left-[10px] top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-[#8B5CF6]" />}
-                <SidebarIcon type={icon} active={Boolean(active)} />
-                <span
-                  className="whitespace-nowrap"
-                  style={{
-                    fontFamily: 'Inter, system-ui, sans-serif',
-                    fontWeight: active ? 500 : 400,
-                    fontSize: '16px',
-                    lineHeight: '100%',
-                    letterSpacing: '0%',
-                  }}
+              { label: 'Dashboard', icon: 'dashboard', active: true, to: '/dashboard' },
+              { label: 'Applications', icon: 'applications', active: false, to: '/applications' },
+              { label: 'Analyzer', icon: 'analyzer', active: false, to: '/analyzer' },
+              { label: 'Performance', icon: 'performance', active: false, to: '/performance' },
+              { label: 'Reminders', icon: 'reminders', active: false, to: '/reminders' },
+            ].map((item) => {
+              const content = (
+                <div
+                  className={`flex min-h-[56px] items-center gap-4 rounded-[16px] border px-6 py-4 ${
+                    item.active
+                      ? 'relative border-[#504B63] bg-[#2C2345] text-[#8B5CF6]'
+                      : isDark
+                      ? 'border-transparent text-white/90'
+                      : 'border-transparent text-[#171421]'
+                  }`}
                 >
-                  {label}
-                </span>
-              </div>
-            ))}
+                  {item.active && <span className="absolute left-[10px] top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-[#8B5CF6]" />}
+                  <SidebarIcon type={item.icon} active={Boolean(item.active)} />
+                  <span
+                    className="whitespace-nowrap"
+                    style={{
+                      fontFamily: 'Inter, system-ui, sans-serif',
+                      fontWeight: item.active ? 500 : 400,
+                      fontSize: '16px',
+                      lineHeight: '100%',
+                      letterSpacing: '0%',
+                    }}
+                  >
+                    {item.label}
+                  </span>
+                </div>
+              );
+
+              if (!item.to) {
+                return <div key={item.label}>{content}</div>;
+              }
+
+              return (
+                <Link key={item.label} to={item.to}>
+                  {content}
+                </Link>
+              );
+            })}
           </nav>
 
           <div className="mt-auto border-t border-inherit px-[18px] pb-7 pt-6">
-            <div className={`flex items-center gap-4 rounded-[18px] px-3 py-3 ${isDark ? 'bg-white/[0.03]' : 'bg-[#F1EFF7]'}`}>
+            <Link to="/profile" className={`flex items-center gap-4 rounded-[18px] px-3 py-3 ${isDark ? 'bg-white/[0.03]' : 'bg-[#F1EFF7]'}`}>
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#5B48D6] text-[18px] font-semibold text-white">
-                AK
+                {profile.fullName
+                  .split(' ')
+                  .slice(0, 2)
+                  .map((part) => part[0])
+                  .join('')
+                  .toUpperCase()}
               </div>
               <div className="min-w-0">
-                <p className={`${brightText} truncate text-[15px] font-semibold leading-[18px]`}>Alex Kim</p>
-                <p className={`${softText} mt-1 truncate text-[12px] font-medium uppercase tracking-[0.08em]`}>Pro Member</p>
+                <p className={`${brightText} truncate text-[15px] font-semibold leading-[18px]`}>{profile.fullName}</p>
+                <p className={`${softText} mt-1 truncate text-[12px] font-medium uppercase tracking-[0.08em]`}>{profile.membership}</p>
               </div>
-            </div>
+            </Link>
           </div>
         </aside>
 
@@ -277,10 +296,13 @@ export default function Dashboard() {
                 />
               </div>
 
-              <button className="flex h-10 w-[215px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#7C4DFF] to-[#8D6BFF] px-8 text-white">
+              <Link
+                to="/add-application"
+                className="flex h-10 w-[215px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#7C4DFF] to-[#8D6BFF] px-8 text-white shadow-[0_12px_28px_rgba(124,77,255,0.24)] transition duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_16px_34px_rgba(124,77,255,0.34)] active:translate-y-0 active:scale-[0.985] focus:outline-none focus:ring-2 focus:ring-violet-400/70"
+              >
                 <span className="font-medium">New Application</span>
                 <span className="text-lg leading-none">⊕</span>
-              </button>
+              </Link>
 
               <ThemeToggle />
             </div>
@@ -437,15 +459,24 @@ export default function Dashboard() {
 
             <div className={`h-[348px] w-full max-w-[326px] rounded-xl border ${panel} px-5 py-5`}>
               <div className="flex items-center justify-between gap-4">
-                <h4 className="text-[17px] font-semibold leading-tight">Reminders</h4>
-                <button className="shrink-0 rounded-xl border border-violet-500 px-3 py-2 text-[12px] font-medium text-violet-500">
+                <Link to="/reminders" className="text-[17px] font-semibold leading-tight">
+                  Reminders
+                </Link>
+                <Link
+                  to="/reminders"
+                  className="shrink-0 rounded-xl border border-violet-500 px-3 py-2 text-[12px] font-medium text-violet-500 transition hover:bg-violet-500/10"
+                >
                   Add ⊕
-                </button>
+                </Link>
               </div>
 
               <div className="mt-4 space-y-2.5">
                 {reminders.map((reminder, index) => (
-                  <div key={index} className={`h-[58px] w-full max-w-[272px] rounded-[10px] border-[1.2px] ${panel} px-3 py-2.5`}>
+                  <Link
+                    key={index}
+                    to="/reminders"
+                    className={`block h-[58px] w-full max-w-[272px] rounded-[10px] border-[1.2px] ${panel} px-3 py-2.5 transition hover:border-violet-400/50`}
+                  >
                     <div className="flex items-center justify-between gap-[10px]">
                       <div className="flex min-w-0 items-start gap-3">
                         <span
@@ -466,7 +497,7 @@ export default function Dashboard() {
                       </div>
                       <span className={`${softText} shrink-0 text-[13px]`}>→</span>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>

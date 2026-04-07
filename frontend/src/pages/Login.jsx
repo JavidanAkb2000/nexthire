@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../context/useTheme';
 import ThemeToggle from '../components/ThemeToggle';
 
 export default function Login() {
@@ -14,7 +14,7 @@ export default function Login() {
   const handleLogin = (e) => {
     e.preventDefault();
     console.log('Login:', { email, password, rememberMe });
-    navigate('/');
+    navigate('/dashboard');
   };
 
   return (
