@@ -31,3 +31,22 @@ class JobApplication(models.Model):
 
     class Meta:
         ordering = ['-application_date']
+
+
+class Reminder(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='reminders'
+    )
+    task = models.CharField(max_length=255)
+    company = models.CharField(max_length=255)
+    due_date = models.DateField(blank=True, null=True)
+    is_completed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.task} for {self.company} ({self.user.username})"
+
+    class Meta:
+        ordering = ['is_completed', 'due_date']
