@@ -1,4 +1,6 @@
 from rest_framework import generics, permissions
+from rest_framework.views import APIView       
+from rest_framework.response import Response   
 from .models import JobApplication, Reminder
 from .serializers import JobApplicationSerializer, ReminderSerializer
 
@@ -43,3 +45,36 @@ class ReminderDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         # Sadece kullanıcının kendi hatırlatıcısına müdahale etmesine izin ver
         return Reminder.objects.filter(user=self.request.user)
+    
+
+class DashboardSummaryView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        
+        # 1. Kullanıcının tüm başvurularını al
+        applications = JobApplication.objects.filter(user=user)
+        
+        # 2. İstatistikleri hesapla
+        stats = {
+            "total_applied": applications.count(),
+            "total_offered": applications.filter(status='offered').count(),
+            "total_interviewed": applications.filter(status__in=['screening', 'interviewing']).count(),
+            "total_rejected": applications.filter(status='rejected').count(),
+        }
+
+        # 3. Yaklaşan ilk 4 hatırlatıcıyı getir (Tamamlanmamış olanlar)
+        upcoming_reminders = Reminder.objects.filter(
+            user=user, 
+            is_completed=False
+        ).order_by('due_date')[:4]
+        
+        # Hatırlatıcıları JSON formatına çevir
+        reminders_data = ReminderSerializer(upcoming_reminders, many=True).data
+
+        # 4. Hepsini tek bir paket olarak gönder
+        return Response({
+            "stats": stats,
+            "upcoming_reminders": reminders_data
+        })

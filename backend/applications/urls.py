@@ -2,8 +2,9 @@ from django.urls import path
 from .views import (
     JobApplicationListCreateView, 
     JobApplicationDetailView,
-    ReminderListCreateView,      # Yeni ekledik
-    ReminderDetailView           # Yeni ekledik
+    ReminderListCreateView,      
+    ReminderDetailView,
+    DashboardSummaryView         
 )
 
 urlpatterns = [
@@ -14,4 +15,7 @@ urlpatterns = [
     # Reminders Endpoints
     path('reminders/', ReminderListCreateView.as_view(), name='reminder-list'),
     path('reminders/<int:pk>/', ReminderDetailView.as_view(), name='reminder-detail'),
+
+    # Dashboard İstatistikleri
+    path('dashboard-summary/', DashboardSummaryView.as_view(), name='dashboard-summary'),
 ]
