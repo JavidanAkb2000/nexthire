@@ -74,6 +74,7 @@ const badgeClasses = {
 
 function SidebarIcon({ type, active }) {
   const color = active ? '#8B5CF6' : 'currentColor';
+
   const common = {
     width: 18,
     height: 18,
@@ -93,6 +94,7 @@ function SidebarIcon({ type, active }) {
       </svg>
     );
   }
+
   if (type === 'applications') {
     return (
       <svg {...common}>
@@ -105,6 +107,7 @@ function SidebarIcon({ type, active }) {
       </svg>
     );
   }
+
   if (type === 'analyzer') {
     return (
       <svg {...common}>
@@ -116,6 +119,7 @@ function SidebarIcon({ type, active }) {
       </svg>
     );
   }
+
   if (type === 'performance') {
     return (
       <svg {...common}>
@@ -124,6 +128,7 @@ function SidebarIcon({ type, active }) {
       </svg>
     );
   }
+
   return (
     <svg {...common}>
       <circle cx="12" cy="12" r="8.5" />
@@ -147,7 +152,6 @@ export default function Dashboard() {
   return (
     <div className={`min-h-screen font-sans ${shell}`}>
       <div className="grid min-h-screen grid-cols-[272px_1fr]">
-
         <aside className={`flex flex-col border-r ${sidebar}`}>
           <div className="border-b border-inherit px-[18px] pb-7 pt-8">
             <h1
@@ -166,7 +170,7 @@ export default function Dashboard() {
 
           <div className="px-[18px] pt-6">
             <p
-              className={`${softText} uppercase`}
+              className={`${softText.toString()} uppercase`}
               style={{
                 fontFamily: 'Inter, system-ui, sans-serif',
                 fontWeight: 500,
@@ -197,9 +201,7 @@ export default function Dashboard() {
                       : 'border-transparent text-[#171421]'
                   }`}
                 >
-                  {item.active && (
-                    <span className="absolute left-[10px] top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-[#8B5CF6]" />
-                  )}
+                  {item.active && <span className="absolute left-[10px] top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-[#8B5CF6]" />}
                   <SidebarIcon type={item.icon} active={Boolean(item.active)} />
                   <span
                     className="whitespace-nowrap"
@@ -229,10 +231,7 @@ export default function Dashboard() {
           </nav>
 
           <div className="mt-auto border-t border-inherit px-[18px] pb-7 pt-6">
-            <Link
-              to="/profile"
-              className={`flex items-center gap-4 rounded-[18px] px-3 py-3 ${isDark ? 'bg-white/[0.03]' : 'bg-[#F1EFF7]'}`}
-            >
+            <Link to="/profile" className={`flex items-center gap-4 rounded-[18px] px-3 py-3 ${isDark ? 'bg-white/[0.03]' : 'bg-[#F1EFF7]'}`}>
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#5B48D6] text-[18px] font-semibold text-white">
                 {profile.fullName
                   .split(' ')
@@ -358,6 +357,7 @@ export default function Dashboard() {
                   Drag cards to update status
                 </p>
               </div>
+
               <button className="flex h-8 w-[125px] items-center justify-center gap-1 rounded-xl border-[1.5px] border-violet-500 text-sm text-violet-500">
                 See All <span>→</span>
               </button>
@@ -370,6 +370,7 @@ export default function Dashboard() {
                     <span className="text-xs">●</span>
                     <span className="truncate font-medium">{column.title}</span>
                   </div>
+
                   <div className="mt-4 space-y-3">
                     {column.cards.map((card, index) => (
                       <div
@@ -393,7 +394,6 @@ export default function Dashboard() {
           </section>
 
           <section className="mt-12 grid grid-cols-1 gap-8 xl:grid-cols-3">
-
             <div className={`h-[348px] w-full max-w-[326px] rounded-xl border ${panel} px-5 py-5`}>
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
@@ -402,6 +402,7 @@ export default function Dashboard() {
                 </div>
                 <span className="shrink-0 rounded-md bg-[#332E59] px-3 py-1 text-[9px] text-white/80">24.03.2026-31.03.2026</span>
               </div>
+
               <div className="mt-6 flex h-[172px] items-end justify-between gap-2">
                 {[5, 9, 6, 4, 3, 2, 7].map((value, index) => (
                   <div key={index} className="flex flex-1 flex-col items-center gap-2">
@@ -415,6 +416,7 @@ export default function Dashboard() {
                   </div>
                 ))}
               </div>
+
               <p className="mt-5 text-[12px] leading-[16px] text-violet-400">36 applications this week</p>
               <p className={`${softText} mt-2 text-[11px] leading-[15px]`}>↗ 12% compared to last week</p>
             </div>
@@ -422,6 +424,7 @@ export default function Dashboard() {
             <div className={`h-[348px] w-full max-w-[326px] rounded-xl border ${panel} px-5 py-5`}>
               <h4 className="text-[17px] font-semibold leading-tight">AI Resume Analyzer</h4>
               <p className={`${softText} mt-2 text-[11px] leading-[15px]`}>Last Scan: 2 days ago</p>
+
               <div className="mt-6 flex items-center justify-between gap-4">
                 <div className="relative flex h-[122px] w-[122px] shrink-0 items-center justify-center rounded-full border-[12px] border-[#7C4DFF] border-r-white/50 border-t-white/60">
                   <div className="text-center">
@@ -429,6 +432,7 @@ export default function Dashboard() {
                     <p className={`${softText} mt-1 text-[11px]`}>Match</p>
                   </div>
                 </div>
+
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 text-[12px] font-medium leading-[16px]">
                     <span className="text-[#FF5252]">⊗</span>
@@ -446,6 +450,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
+
               <button className="mt-12 flex w-full items-center justify-center gap-2 rounded-[16px] border border-violet-400/80 bg-gradient-to-r from-[#2A2340] via-[#31264A] to-[#261F3C] px-4 py-3.5 text-[14px] font-semibold text-violet-300 shadow-[0_12px_30px_rgba(124,77,255,0.14)] transition duration-200 hover:-translate-y-0.5 hover:border-[#d9cff9] hover:bg-[#bfb1ea] hover:bg-none hover:text-[#2a2144] hover:shadow-[0_16px_36px_rgba(191,177,234,0.5)] active:translate-y-0 active:scale-[0.985] focus:outline-none focus:ring-2 focus:ring-[#bfb1ea]/70">
                 <span>Analyze New Resume</span>
                 <span className="text-[16px] leading-none">↗</span>
@@ -464,6 +469,7 @@ export default function Dashboard() {
                   Add ⊕
                 </Link>
               </div>
+
               <div className="mt-4 space-y-2.5">
                 {reminders.map((reminder, index) => (
                   <Link
@@ -495,10 +501,11 @@ export default function Dashboard() {
                 ))}
               </div>
             </div>
-
           </section>
+
         </main>
       </div>
     </div>
   );
 }
+
