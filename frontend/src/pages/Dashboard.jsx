@@ -12,41 +12,11 @@ const stats = [
 ];
 
 const pipeline = [
-  {
-    title: 'Applied',
-    tone: 'blue',
-    cards: [
-      { company: 'Google', age: '2 days ago' },
-      { company: 'Spotify', age: '4 days ago' },
-      { company: 'Notion', age: '6 days ago' },
-    ],
-  },
-  {
-    title: 'Screening',
-    tone: 'yellow',
-    cards: [
-      { company: 'Airbnb', age: '2 days ago' },
-      { company: 'Canva', age: '5 days ago' },
-    ],
-  },
-  {
-    title: 'Interview',
-    tone: 'amber',
-    cards: [{ company: 'Figma', age: '2 days ago' }],
-  },
-  {
-    title: 'Offer',
-    tone: 'green',
-    cards: [
-      { company: 'Stripe', age: '1 day ago' },
-      { company: 'Shopify', age: '3 days ago' },
-    ],
-  },
-  {
-    title: 'Rejected',
-    tone: 'red',
-    cards: [{ company: 'Dropbox', age: '6 days ago' }],
-  },
+  { title: 'Applied', tone: 'blue', cards: [{ company: 'Google', age: '2 days ago' }, { company: 'Spotify', age: '4 days ago' }, { company: 'Notion', age: '6 days ago' }] },
+  { title: 'Screening', tone: 'yellow', cards: [{ company: 'Airbnb', age: '2 days ago' }, { company: 'Canva', age: '5 days ago' }] },
+  { title: 'Interview', tone: 'amber', cards: [{ company: 'Figma', age: '2 days ago' }] },
+  { title: 'Offer', tone: 'green', cards: [{ company: 'Stripe', age: '1 day ago' }, { company: 'Shopify', age: '3 days ago' }] },
+  { title: 'Rejected', tone: 'red', cards: [{ company: 'Dropbox', age: '6 days ago' }] },
 ];
 
 const reminders = [
@@ -57,84 +27,21 @@ const reminders = [
 ];
 
 const toneClasses = {
-  blue: 'border-[#3B82F6] text-[#3B82F6]',
-  green: 'border-[#22C55E] text-[#22C55E]',
-  yellow: 'border-[#FACC15] text-[#FACC15]',
-  amber: 'border-[#F59E0B] text-[#F59E0B]',
-  red: 'border-[#FF5252] text-[#FF5252]',
+  blue: 'border-[#3B82F6] text-[#3B82F6]', green: 'border-[#22C55E] text-[#22C55E]', yellow: 'border-[#FACC15] text-[#FACC15]', amber: 'border-[#F59E0B] text-[#F59E0B]', red: 'border-[#FF5252] text-[#FF5252]',
 };
 
 const badgeClasses = {
-  blue: 'bg-[#1D2A4A] text-[#3B82F6]',
-  green: 'bg-[#173A2A] text-[#2DDF7F]',
-  yellow: 'bg-[#463C12] text-[#FACC15]',
-  amber: 'bg-[#4A3214] text-[#F59E0B]',
-  red: 'bg-[#432125] text-[#FF5252]',
+  blue: 'bg-[#1D2A4A] text-[#3B82F6]', green: 'bg-[#173A2A] text-[#2DDF7F]', yellow: 'bg-[#463C12] text-[#FACC15]', amber: 'bg-[#4A3214] text-[#F59E0B]', red: 'bg-[#432125] text-[#FF5252]',
 };
 
 function SidebarIcon({ type, active }) {
   const color = active ? '#8B5CF6' : 'currentColor';
-
-  const common = {
-    width: 18,
-    height: 18,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: color,
-    strokeWidth: 1.9,
-    strokeLinecap: 'round',
-    strokeLinejoin: 'round',
-  };
-
-  if (type === 'dashboard') {
-    return (
-      <svg {...common}>
-        <path d="M4 11.5L12 5l8 6.5" />
-        <path d="M6.5 10.5V18h11v-7.5" />
-      </svg>
-    );
-  }
-
-  if (type === 'applications') {
-    return (
-      <svg {...common}>
-        <path d="M8 7h12" />
-        <path d="M8 12h12" />
-        <path d="M8 17h12" />
-        <path d="M4 7h.01" />
-        <path d="M4 12h.01" />
-        <path d="M4 17h.01" />
-      </svg>
-    );
-  }
-
-  if (type === 'analyzer') {
-    return (
-      <svg {...common}>
-        <path d="M7 7l10 10" />
-        <path d="M14 6l4 4" />
-        <path d="M6 14l4 4" />
-        <path d="M11 4l2 2" />
-        <path d="M4 11l2 2" />
-      </svg>
-    );
-  }
-
-  if (type === 'performance') {
-    return (
-      <svg {...common}>
-        <path d="M4 17l5-5 4 4 7-8" />
-        <path d="M20 8h-5" />
-      </svg>
-    );
-  }
-
-  return (
-    <svg {...common}>
-      <circle cx="12" cy="12" r="8.5" />
-      <path d="M12 8v4l2.5 2.5" />
-    </svg>
-  );
+  const common = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: color, strokeWidth: 1.9, strokeLinecap: 'round', strokeLinejoin: 'round' };
+  if (type === 'dashboard') return <svg {...common}><path d="M4 11.5L12 5l8 6.5" /><path d="M6.5 10.5V18h11v-7.5" /></svg>;
+  if (type === 'applications') return <svg {...common}><path d="M8 7h12" /><path d="M8 12h12" /><path d="M8 17h12" /><path d="M4 7h.01" /><path d="M4 12h.01" /><path d="M4 17h.01" /></svg>;
+  if (type === 'analyzer') return <svg {...common}><path d="M7 7l10 10" /><path d="M14 6l4 4" /><path d="M6 14l4 4" /><path d="M11 4l2 2" /><path d="M4 11l2 2" /></svg>;
+  if (type === 'performance') return <svg {...common}><path d="M4 17l5-5 4 4 7-8" /><path d="M20 8h-5" /></svg>;
+  return <svg {...common}><circle cx="12" cy="12" r="8.5" /><path d="M12 8v4l2.5 2.5" /></svg>;
 }
 
 export default function Dashboard() {
@@ -142,6 +49,16 @@ export default function Dashboard() {
   const { profile } = useProfile();
   const [search, setSearch] = useState('');
   useDeferredValue(search);
+
+  // YENİ EKLENEN: Dinamik Tarih (Bugünün gününü ve ayını İngilizce formatta alır)
+  const today = new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date());
+
+  // YENİ EKLENEN: Profildeki uzun adın sadece ilk kelimesini (İsmini) alıyoruz
+  const firstName = profile.fullName.split(' ')[0];
 
   const shell = isDark ? 'bg-[#111119] text-white' : 'bg-[#F6F3FF] text-[#171421]';
   const sidebar = isDark ? 'bg-[#1B1B25] border-[#4A475B]' : 'bg-[#FBFAFE] border-[#D4D0DF]';
@@ -154,35 +71,11 @@ export default function Dashboard() {
       <div className="grid min-h-screen grid-cols-[272px_1fr]">
         <aside className={`flex flex-col border-r ${sidebar}`}>
           <div className="border-b border-inherit px-[18px] pb-7 pt-8">
-            <h1
-              className={`${brightText} whitespace-nowrap`}
-              style={{
-                fontFamily: 'Sitka, Georgia, serif',
-                fontWeight: 700,
-                fontSize: '34px',
-                lineHeight: '34px',
-                letterSpacing: '0%',
-              }}
-            >
+            <h1 className={`${brightText} whitespace-nowrap`} style={{ fontFamily: 'Sitka, Georgia, serif', fontWeight: 700, fontSize: '34px', lineHeight: '34px' }}>
               NextHire<span className="align-top text-[0.45em] text-violet-500">•</span>
             </h1>
           </div>
-
-          <div className="px-[18px] pt-6">
-            <p
-              className={`${softText.toString()} uppercase`}
-              style={{
-                fontFamily: 'Inter, system-ui, sans-serif',
-                fontWeight: 500,
-                fontSize: '9px',
-                lineHeight: '16px',
-                letterSpacing: '2%',
-              }}
-            >
-              Main Menu
-            </p>
-          </div>
-
+          <div className="px-[18px] pt-6"><p className={`${softText} uppercase text-[9px] font-medium leading-[16px]`}>Main Menu</p></div>
           <nav className="mt-14 flex flex-1 flex-col gap-4 px-[10px]">
             {[
               { label: 'Dashboard', icon: 'dashboard', active: true, to: '/dashboard' },
@@ -190,55 +83,20 @@ export default function Dashboard() {
               { label: 'Analyzer', icon: 'analyzer', active: false, to: '/analyzer' },
               { label: 'Performance', icon: 'performance', active: false, to: '/performance' },
               { label: 'Reminders', icon: 'reminders', active: false, to: '/reminders' },
-            ].map((item) => {
-              const content = (
-                <div
-                  className={`flex min-h-[56px] items-center gap-4 rounded-[16px] border px-6 py-4 ${
-                    item.active
-                      ? 'relative border-[#504B63] bg-[#2C2345] text-[#8B5CF6]'
-                      : isDark
-                      ? 'border-transparent text-white/90'
-                      : 'border-transparent text-[#171421]'
-                  }`}
-                >
+            ].map((item) => (
+              <Link key={item.label} to={item.to}>
+                <div className={`flex min-h-[56px] items-center gap-4 rounded-[16px] border px-6 py-4 ${item.active ? 'relative border-[#504B63] bg-[#2C2345] text-[#8B5CF6]' : isDark ? 'border-transparent text-white/90' : 'border-transparent text-[#171421]'}`}>
                   {item.active && <span className="absolute left-[10px] top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-[#8B5CF6]" />}
-                  <SidebarIcon type={item.icon} active={Boolean(item.active)} />
-                  <span
-                    className="whitespace-nowrap"
-                    style={{
-                      fontFamily: 'Inter, system-ui, sans-serif',
-                      fontWeight: item.active ? 500 : 400,
-                      fontSize: '16px',
-                      lineHeight: '100%',
-                      letterSpacing: '0%',
-                    }}
-                  >
-                    {item.label}
-                  </span>
+                  <SidebarIcon type={item.icon} active={item.active} />
+                  <span className="whitespace-nowrap text-[16px] font-medium">{item.label}</span>
                 </div>
-              );
-
-              if (!item.to) {
-                return <div key={item.label}>{content}</div>;
-              }
-
-              return (
-                <Link key={item.label} to={item.to}>
-                  {content}
-                </Link>
-              );
-            })}
+              </Link>
+            ))}
           </nav>
-
           <div className="mt-auto border-t border-inherit px-[18px] pb-7 pt-6">
             <Link to="/profile" className={`flex items-center gap-4 rounded-[18px] px-3 py-3 ${isDark ? 'bg-white/[0.03]' : 'bg-[#F1EFF7]'}`}>
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#5B48D6] text-[18px] font-semibold text-white">
-                {profile.fullName
-                  .split(' ')
-                  .slice(0, 2)
-                  .map((part) => part[0])
-                  .join('')
-                  .toUpperCase()}
+                {profile.fullName.split(' ').slice(0, 2).map((part) => part[0]).join('').toUpperCase()}
               </div>
               <div className="min-w-0">
                 <p className={`${brightText} truncate text-[15px] font-semibold leading-[18px]`}>{profile.fullName}</p>
@@ -251,78 +109,37 @@ export default function Dashboard() {
         <main className="px-11 pb-10 pt-4">
           <header className={`flex items-start justify-between border-b pb-4 ${isDark ? 'border-[#4A475B]' : 'border-[#D4D0DF]'}`}>
             <div>
-              <h2
-                style={{
-                  fontFamily: 'Inter, system-ui, sans-serif',
-                  fontWeight: 600,
-                  fontSize: '24px',
-                  lineHeight: '100%',
-                  letterSpacing: '0%',
-                  verticalAlign: 'middle',
-                }}
-              >
-                Hello, Alex!
+              {/* YENİ EKLENEN: Dinamik İsim Karşılama */}
+              <h2 style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 600, fontSize: '24px', lineHeight: '100%', verticalAlign: 'middle' }}>
+                Hello, {firstName}!
               </h2>
-              <p
-                className={`mt-2 ${softText}`}
-                style={{
-                  fontFamily: 'Inter, system-ui, sans-serif',
-                  fontWeight: 500,
-                  fontSize: '10px',
-                  lineHeight: '100%',
-                  letterSpacing: '2%',
-                  verticalAlign: 'middle',
-                }}
-              >
-                Saturday, March 28
+              {/* YENİ EKLENEN: Dinamik Tarih */}
+              <p className={`mt-2 ${softText}`} style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 500, fontSize: '10px', lineHeight: '100%', letterSpacing: '2%' }}>
+                {today}
               </p>
             </div>
-
             <div className="flex items-center gap-4">
-              <div
-                className={`flex h-10 w-[299px] items-center gap-3 rounded-xl border px-4 ${
-                  isDark ? 'border-white/12 bg-[#2B2A37]' : 'border-[#DCCFFF] bg-white'
-                }`}
-              >
-                <svg className={softText} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="M20 20l-3.5-3.5" />
-                </svg>
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search"
-                  className={`w-full bg-transparent text-sm outline-none ${isDark ? 'placeholder:text-white/40' : 'placeholder:text-[#8A84A2]'}`}
-                />
+              <div className={`flex h-10 w-[299px] items-center gap-3 rounded-xl border px-4 ${isDark ? 'border-white/12 bg-[#2B2A37]' : 'border-[#DCCFFF] bg-white'}`}>
+                <svg className={softText} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+                <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search" className={`w-full bg-transparent text-sm outline-none ${isDark ? 'placeholder:text-white/40' : 'placeholder:text-[#8A84A2]'}`} />
               </div>
-
-              <Link
-                to="/add-application"
-                className="flex h-10 w-[215px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#7C4DFF] to-[#8D6BFF] px-8 text-white shadow-[0_12px_28px_rgba(124,77,255,0.24)] transition duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_16px_34px_rgba(124,77,255,0.34)] active:translate-y-0 active:scale-[0.985] focus:outline-none focus:ring-2 focus:ring-violet-400/70"
-              >
-                <span className="font-medium">New Application</span>
-                <span className="text-lg leading-none">⊕</span>
+              <Link to="/add-application" className="flex h-10 w-[215px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#7C4DFF] to-[#8D6BFF] px-8 text-white shadow-[0_12px_28px_rgba(124,77,255,0.24)] transition duration-200 hover:brightness-110">
+                <span className="font-medium">New Application</span><span className="text-lg leading-none">⊕</span>
               </Link>
-
               <ThemeToggle />
             </div>
           </header>
 
           <section className="mt-8 flex gap-5 overflow-x-auto pb-1">
             {stats.map((stat) => (
-              <div
-                key={stat.label}
-                className={`h-[104px] w-[249px] shrink-0 rounded-xl border-[1.5px] px-8 py-4 text-left ${panel} ${toneClasses[stat.tone]}`}
-              >
+              <div key={stat.label} className={`h-[104px] w-[249px] shrink-0 rounded-xl border-[1.5px] px-8 py-4 text-left ${panel} ${toneClasses[stat.tone]}`}>
                 <div className="flex h-full flex-col justify-between">
                   <div className="min-w-0">
                     <p className={`${softText} text-[12px] font-medium leading-[16px] tracking-[0.01em]`}>{stat.label}</p>
                     <p className={`${brightText} mt-2 text-[24px] font-semibold leading-none`}>{stat.value}</p>
                   </div>
                   <div className="flex items-center justify-between gap-[10px] text-[12px]">
-                    <span className={`${stat.tone === 'red' ? 'text-[#FF5252]' : 'text-[#22C55E]'} shrink-0 font-medium leading-none`}>
-                      {stat.delta}
-                    </span>
+                    <span className={`${stat.tone === 'red' ? 'text-[#FF5252]' : 'text-[#22C55E]'} shrink-0 font-medium leading-none`}>{stat.delta}</span>
                     <span className={`${softText} shrink-0 text-[12px]`}>See more</span>
                   </div>
                 </div>
@@ -333,50 +150,22 @@ export default function Dashboard() {
           <section className="mt-10">
             <div className="flex items-end justify-between">
               <div>
-                <h3
-                  style={{
-                    fontFamily: 'Inter, system-ui, sans-serif',
-                    fontWeight: 500,
-                    fontSize: '20px',
-                    lineHeight: '100%',
-                    letterSpacing: '0%',
-                  }}
-                >
-                  Application Pipeline
-                </h3>
-                <p
-                  className={`mt-3 ${softText}`}
-                  style={{
-                    fontFamily: 'Inter, system-ui, sans-serif',
-                    fontWeight: 400,
-                    fontSize: '14px',
-                    lineHeight: '100%',
-                    letterSpacing: '0%',
-                  }}
-                >
-                  Drag cards to update status
-                </p>
+                <h3 className="text-[20px] font-medium leading-none">Application Pipeline</h3>
+                <p className={`mt-3 text-[14px] leading-none ${softText}`}>Drag cards to update status</p>
               </div>
-
               <button className="flex h-8 w-[125px] items-center justify-center gap-1 rounded-xl border-[1.5px] border-violet-500 text-sm text-violet-500">
                 See All <span>→</span>
               </button>
             </div>
-
             <div className="mt-8 grid grid-cols-5 gap-8">
               {pipeline.map((column) => (
                 <div key={column.title} className="w-[184px]">
                   <div className={`flex h-8 w-[184px] items-center gap-2 rounded-lg border-[1.5px] px-4 ${badgeClasses[column.tone]}`}>
-                    <span className="text-xs">●</span>
-                    <span className="truncate font-medium">{column.title}</span>
+                    <span className="text-xs">●</span><span className="truncate font-medium">{column.title}</span>
                   </div>
-
                   <div className="mt-4 space-y-3">
                     {column.cards.map((card, index) => (
-                      <div
-                        key={`${column.title}-${index}`}
-                        className={`h-[84px] w-[184px] rounded-xl border ${panel} px-4 py-3`}
-                      >
+                      <div key={index} className={`h-[84px] w-[184px] rounded-xl border ${panel} px-4 py-3`}>
                         <div className="flex h-full items-start justify-between gap-3">
                           <div className="min-w-0">
                             <p className={`${brightText} truncate text-[14px] font-semibold leading-[18px]`}>{card.company}</p>
@@ -402,21 +191,16 @@ export default function Dashboard() {
                 </div>
                 <span className="shrink-0 rounded-md bg-[#332E59] px-3 py-1 text-[9px] text-white/80">24.03.2026-31.03.2026</span>
               </div>
-
               <div className="mt-6 flex h-[172px] items-end justify-between gap-2">
                 {[5, 9, 6, 4, 3, 2, 7].map((value, index) => (
                   <div key={index} className="flex flex-1 flex-col items-center gap-2">
                     <span className="text-[11px] font-medium">{value}</span>
                     <div className="flex h-[148px] w-full items-end rounded-full bg-[#322A57] p-1">
-                      <div
-                        className="w-full rounded-full bg-gradient-to-t from-[#7C4DFF] to-[#5D4AB5]"
-                        style={{ height: `${28 + value * 10}px` }}
-                      />
+                      <div className="w-full rounded-full bg-gradient-to-t from-[#7C4DFF] to-[#5D4AB5]" style={{ height: `${28 + value * 10}px` }} />
                     </div>
                   </div>
                 ))}
               </div>
-
               <p className="mt-5 text-[12px] leading-[16px] text-violet-400">36 applications this week</p>
               <p className={`${softText} mt-2 text-[11px] leading-[15px]`}>↗ 12% compared to last week</p>
             </div>
@@ -424,7 +208,6 @@ export default function Dashboard() {
             <div className={`h-[348px] w-full max-w-[326px] rounded-xl border ${panel} px-5 py-5`}>
               <h4 className="text-[17px] font-semibold leading-tight">AI Resume Analyzer</h4>
               <p className={`${softText} mt-2 text-[11px] leading-[15px]`}>Last Scan: 2 days ago</p>
-
               <div className="mt-6 flex items-center justify-between gap-4">
                 <div className="relative flex h-[122px] w-[122px] shrink-0 items-center justify-center rounded-full border-[12px] border-[#7C4DFF] border-r-white/50 border-t-white/60">
                   <div className="text-center">
@@ -432,64 +215,33 @@ export default function Dashboard() {
                     <p className={`${softText} mt-1 text-[11px]`}>Match</p>
                   </div>
                 </div>
-
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 text-[12px] font-medium leading-[16px]">
-                    <span className="text-[#FF5252]">⊗</span>
-                    <span>Missing Keywords</span>
+                    <span className="text-[#FF5252]">⊗</span><span>Missing Keywords</span>
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2">
                     {['UX Research', 'Figma', 'User Journey'].map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-md bg-[#332E59] px-2.5 py-2 text-[10px] leading-none text-white/85"
-                      >
-                        {tag}
-                      </span>
+                      <span key={tag} className="rounded-md bg-[#332E59] px-2.5 py-2 text-[10px] leading-none text-white/85">{tag}</span>
                     ))}
                   </div>
                 </div>
               </div>
-
-              <button className="mt-12 flex w-full items-center justify-center gap-2 rounded-[16px] border border-violet-400/80 bg-gradient-to-r from-[#2A2340] via-[#31264A] to-[#261F3C] px-4 py-3.5 text-[14px] font-semibold text-violet-300 shadow-[0_12px_30px_rgba(124,77,255,0.14)] transition duration-200 hover:-translate-y-0.5 hover:border-[#d9cff9] hover:bg-[#bfb1ea] hover:bg-none hover:text-[#2a2144] hover:shadow-[0_16px_36px_rgba(191,177,234,0.5)] active:translate-y-0 active:scale-[0.985] focus:outline-none focus:ring-2 focus:ring-[#bfb1ea]/70">
-                <span>Analyze New Resume</span>
-                <span className="text-[16px] leading-none">↗</span>
+              <button className="mt-12 flex w-full items-center justify-center gap-2 rounded-[16px] border border-violet-400/80 bg-gradient-to-r from-[#2A2340] via-[#31264A] to-[#261F3C] px-4 py-3.5 text-[14px] font-semibold text-violet-300 shadow-[0_12px_30px_rgba(124,77,255,0.14)] transition duration-200 hover:brightness-110">
+                <span>Analyze New Resume</span><span className="text-[16px] leading-none">↗</span>
               </button>
             </div>
 
             <div className={`h-[348px] w-full max-w-[326px] rounded-xl border ${panel} px-5 py-5`}>
               <div className="flex items-center justify-between gap-4">
-                <Link to="/reminders" className="text-[17px] font-semibold leading-tight">
-                  Reminders
-                </Link>
-                <Link
-                  to="/reminders"
-                  className="shrink-0 rounded-xl border border-violet-500 px-3 py-2 text-[12px] font-medium text-violet-500 transition hover:bg-violet-500/10"
-                >
-                  Add ⊕
-                </Link>
+                <Link to="/reminders" className="text-[17px] font-semibold leading-tight">Reminders</Link>
+                <Link to="/reminders" className="shrink-0 rounded-xl border border-violet-500 px-3 py-2 text-[12px] font-medium text-violet-500 transition hover:bg-violet-500/10">Add ⊕</Link>
               </div>
-
               <div className="mt-4 space-y-2.5">
                 {reminders.map((reminder, index) => (
-                  <Link
-                    key={index}
-                    to="/reminders"
-                    className={`block h-[58px] w-full max-w-[272px] rounded-[10px] border-[1.2px] ${panel} px-3 py-2.5 transition hover:border-violet-400/50`}
-                  >
+                  <Link key={index} to="/reminders" className={`block h-[58px] w-full max-w-[272px] rounded-[10px] border-[1.2px] ${panel} px-3 py-2.5 transition hover:border-violet-400/50`}>
                     <div className="flex items-center justify-between gap-[10px]">
                       <div className="flex min-w-0 items-start gap-3">
-                        <span
-                          className={
-                            reminder.tone === 'red'
-                              ? 'text-[#FF5252]'
-                              : reminder.tone === 'amber'
-                              ? 'text-[#F59E0B]'
-                              : 'text-[#22C55E]'
-                          }
-                        >
-                          ●
-                        </span>
+                        <span className={reminder.tone === 'red' ? 'text-[#FF5252]' : reminder.tone === 'amber' ? 'text-[#F59E0B]' : 'text-[#22C55E]'}>●</span>
                         <div className="min-w-0">
                           <p className="truncate text-[11px] font-medium leading-[14px]">{reminder.title}</p>
                           <p className={`${softText} mt-1 truncate text-[10px] leading-[12px]`}>{reminder.detail}</p>
@@ -502,10 +254,8 @@ export default function Dashboard() {
               </div>
             </div>
           </section>
-
         </main>
       </div>
     </div>
   );
 }
-
