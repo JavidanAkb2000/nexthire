@@ -4,11 +4,11 @@ from django.conf import settings
 class JobApplication(models.Model):
     STATUS_CHOICES = [
         ('applied', 'Applied'),
-        ('screening', 'Screening'), # Sania'nın tasarımı için eklendi
-        ('interviewing', 'Interviewing'),
-        ('offered', 'Offered'),
+        ('interview', 'Interview'),
+        ('screening', 'Screening'),
+        ('offer', 'Offer'),
         ('rejected', 'Rejected'),
-        ('withdrawn', 'Withdrawn'),
+        ('saved', 'Saved'),
     ]
 
     # Her başvuru bir kullanıcıya aittir

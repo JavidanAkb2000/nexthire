@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/useTheme';
 import ThemeToggle from '../components/ThemeToggle';
+import api from '../api';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -11,12 +12,27 @@ export default function Login() {
   const navigate = useNavigate();
   const { isDark } = useTheme();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    console.log('Login:', { email, password, rememberMe });
-    navigate('/dashboard');
-  };
+    
+   try {
+      console.log("Backend'e Gönderilen Paket:", { email: email, password: password }); 
+      
+      const response = await api.post('token/', {
+        email: email, // İŞTE SİHİRLİ DOKUNUŞ! "username" yerine "email" yazıyoruz.
+        password: password
+      });
 
+      console.log("Giriş Başarılı!");
+      localStorage.setItem('access_token', response.data.access);
+      localStorage.setItem('refresh_token', response.data.refresh);
+      navigate('/dashboard');
+
+    } catch (error) {
+      console.error("Giriş Hatası Detayı:", error.response?.data);
+      alert("Giriş başarısız oldu. Şifrenizi kontrol edin."); 
+    }
+  };
   return (
     <div
       className={`relative min-h-screen overflow-hidden font-sans ${

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../context/useTheme';
 import ThemeToggle from '../components/ThemeToggle';
+import api from '../api';
 
 export default function Register() {
   const [name, setName] = useState('');
@@ -14,10 +15,44 @@ export default function Register() {
   const navigate = useNavigate();
   const { isDark } = useTheme();
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    console.log('Register:', { name, email, password, confirmPassword, agreeTerms });
-    navigate('/login');
+    // ... şifre kontrol kodların ...
+
+    if (!agreeTerms) {
+      alert("Lütfen devam etmek için Kullanım Şartları ve Gizlilik Politikasını kabul ediniz!");
+      return;
+    }
+
+    // 2. KONTROL: Şifre uzunluğu
+    if (password.length < 8) {
+      alert("Şifreniz güvenliğiniz için en az 8 karakter olmalıdır!");
+      return;
+    }
+
+    // 3. KONTROL: Şifreler eşleşiyor mu?
+    if (password !== confirmPassword) {
+      alert("Girdiğiniz şifreler birbiriyle uyuşmuyor!");
+      return;
+    }
+
+    try {
+      // Backend'in beklediği formatta veriyi gönderiyoruz
+      // Email'i hem email hem username olarak gönderiyoruz (Backend ayarın gereği)
+      const response = await api.post('users/register/', {
+        username: email, 
+        email: email,
+        password: password
+      });
+
+      console.log('Kayıt Başarılı:', response.data);
+      alert("Hesabınız başarıyla oluşturuldu! Şimdi giriş yapabilirsiniz.");
+      navigate('/login');
+
+    } catch (error) {
+      console.error("Kayıt Hatası:", error.response?.data);
+      alert("Kayıt başarısız! Bu e-posta adresi zaten kullanımda olabilir.");
+    }
   };
 
   return (
