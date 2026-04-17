@@ -163,7 +163,7 @@ export default function Performance() {
   ];
 
   return (
-    <div className={`min-h-screen font-sans ${shell}`}>
+    <div className={`min-h-screen font-sans transition-colors duration-300 ${shell}`}>
       <div className="grid min-h-screen grid-cols-[272px_1fr]">
         <aside className={`flex flex-col border-r ${sidebar}`}>
           <div className="border-b border-inherit px-[18px] pb-7 pt-8">
@@ -254,13 +254,16 @@ export default function Performance() {
 
         <main className="px-[72px] pb-10 pt-4">
           <div className="mt-4">
-            <h2 className="text-[28px] font-semibold leading-[34px]">Performance</h2>
+            <div className="flex w-[1090px] items-center justify-between">
+              <h2 className={`text-[28px] font-semibold leading-[34px] ${brightText}`}>Performance</h2>
+              <ThemeToggle />
+            </div>
             <p className={`${softText} mt-1 text-[14px] leading-[20px]`}>Visualize your job search process</p>
           </div>
 
           <section className="mt-14 grid w-[1090px] grid-cols-4 gap-7">
             {metricCards.map((card) => (
-              <div key={card.title} className={`h-[130px] rounded-[22px] border ${panel} px-6 py-5`}>
+              <div key={card.title} className={`h-[130px] rounded-[22px] border ${panel} px-6 py-5 shadow-sm`}>
                 <div className="flex items-start gap-5">
                   <div className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full border border-[#7C4DFF]">
                     <MetricIcon type={card.icon} />
@@ -276,15 +279,15 @@ export default function Performance() {
           </section>
 
           <section className="mt-7 grid w-[1090px] grid-cols-[1.08fr_1fr] gap-10">
-            <div className={`h-[430px] rounded-[18px] border ${panel} px-12 py-9`}>
-              <h3 className="text-[22px] font-semibold leading-none">Weekly Activity</h3>
+            <div className={`h-[430px] rounded-[18px] border ${panel} px-12 py-9 shadow-sm`}>
+              <h3 className={`text-[22px] font-semibold leading-none ${brightText}`}>Weekly Activity</h3>
               <p className={`${softText} mt-2 text-[13px]`}>Application sent per day</p>
 
               <div className="mt-8 flex h-[215px] items-end justify-between gap-2">
                 {weeklyValues.map((value, index) => (
                   <div key={index} className="flex flex-col items-center gap-2">
-                    <span className="text-[12px]">{value}</span>
-                    <div className="flex h-[182px] w-[48px] items-end rounded-[12px] bg-[#3A2F69] p-[2px]">
+                    <span className={`text-[12px] ${brightText}`}>{value}</span>
+                    <div className={`flex h-[182px] w-[48px] items-end rounded-[12px] ${isDark ? 'bg-[#3A2F69]' : 'bg-[#E5E0F2]'} p-[2px]`}>
                       <div
                         className={`w-full rounded-[10px] ${index === 4 ? 'bg-[#7C5CFF]' : 'bg-[#5A46A8]'}`}
                         style={{ height: `${40 + value * 15}px` }}
@@ -295,41 +298,41 @@ export default function Performance() {
                 ))}
               </div>
 
-              <p className="mt-5 text-[13px] text-[#8B5CF6]">36 applications this week</p>
-              <p className="mt-2 text-[13px] text-[#22E37D]">↗ 12% compared to last week</p>
+              <p className="mt-5 text-[13px] font-medium text-[#8B5CF6]">36 applications this week</p>
+              <p className="mt-2 text-[13px] font-medium text-[#22E37D]">↗ 12% compared to last week</p>
             </div>
 
-            <div className={`h-[430px] rounded-[18px] border ${panel} px-12 py-9`}>
-              <h3 className="text-[22px] font-semibold leading-none">Status Breakdown</h3>
+            <div className={`h-[430px] rounded-[18px] border ${panel} px-12 py-9 shadow-sm`}>
+              <h3 className={`text-[22px] font-semibold leading-none ${brightText}`}>Status Breakdown</h3>
               <p className={`${softText} mt-2 text-[13px]`}>Application sent per day</p>
 
               <div className="mt-10">
-                <div className="flex h-[28px] overflow-hidden rounded-[4px]">
+                <div className="flex h-[28px] overflow-hidden rounded-[4px] bg-gray-100/10">
                   {breakdown.map((item) => (
                     <div key={item.label} style={{ width: `${(item.value / 42) * 100}%`, backgroundColor: item.color }} />
                   ))}
                 </div>
-                <p className="mt-2 text-right text-[13px] text-white/85">Total Applications (42)</p>
+                <p className={`mt-2 text-right text-[13px] ${isDark ? 'text-white/85' : 'text-[#171421]/85'}`}>Total Applications (42)</p>
               </div>
 
               <div className="mt-8 space-y-5">
                 {breakdown.map((item) => (
                   <div key={item.label} className="flex items-center gap-4">
                     <span className="h-[8px] w-[8px] rounded-full" style={{ backgroundColor: item.color }} />
-                    <span className="text-[16px] text-white/90">{item.label} ({item.value})</span>
+                    <span className={`text-[16px] ${isDark ? 'text-white/90' : 'text-[#171421]/90'}`}>{item.label} ({item.value})</span>
                   </div>
                 ))}
               </div>
             </div>
           </section>
 
-          <section className={`mt-7 w-[1090px] rounded-[18px] border ${panel} px-12 py-9`}>
-            <h3 className="text-[22px] font-semibold leading-none">Overview</h3>
+          <section className={`mt-7 w-[1090px] rounded-[18px] border ${panel} px-12 py-9 shadow-sm`}>
+            <h3 className={`text-[22px] font-semibold leading-none ${brightText}`}>Overview</h3>
             <p className={`${softText} mt-2 text-[13px]`}>See the insights across your applications.</p>
 
             <div className="mt-7 grid grid-cols-4 gap-8">
               {overviewCards.map((card) => (
-                <div key={card.title} className={`min-h-[112px] rounded-[22px] border ${panel} px-8 py-5`}>
+                <div key={card.title} className={`min-h-[112px] rounded-[22px] border ${panel} px-8 py-5 shadow-sm`}>
                   <p className={`${softText} text-[14px]`}>{card.title}</p>
                   <p className="mt-5 text-[18px] font-medium text-[#8B5CF6]">{card.value}</p>
                   <p className={`${softText} mt-5 text-[12px] not-italic`} style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>

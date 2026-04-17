@@ -224,9 +224,12 @@ export default function Analyzer() {
         </aside>
 
         <main className="px-[66px] pb-12 pt-10">
-          <div>
-            <h2 className="text-[28px] font-semibold leading-[34px]">AI Resume Analyzer</h2>
-            <p className={`${softText} mt-1 text-[14px] leading-[20px]`}>Optimize your resume for every job with AI</p>
+          <div className="flex w-[1090px] items-center justify-between">
+            <div>
+              <h2 className={`text-[28px] font-semibold leading-[34px] ${brightText}`}>AI Resume Analyzer</h2>
+              <p className={`${softText} mt-1 text-[14px] leading-[20px]`}>Optimize your resume for every job with AI</p>
+            </div>
+            <ThemeToggle />
           </div>
 
           <section className="mt-16 grid w-[1090px] grid-cols-[522px_522px] gap-[46px]">
