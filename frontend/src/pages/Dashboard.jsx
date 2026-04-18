@@ -145,7 +145,7 @@ export default function Dashboard() {
   const [showFilterMenu, setShowFilterMenu] = useState(false); 
   const [filters, setFilters] = useState({ date: '', status: '', role: '' }); 
   
-  const [openDropdown, setOpenDropdown] = useState(null); // Tracks which filter sub-menu is open
+  const [openDropdown, setOpenDropdown] = useState(null); 
 
   const deferredSearch = useDeferredValue(search); 
 
@@ -180,8 +180,9 @@ export default function Dashboard() {
 
   return ( 
     <div className={`min-h-screen font-sans ${shell}`}> 
-      <div className="grid min-h-screen grid-cols-[272px_1fr]"> 
-        <aside className={`flex flex-col border-r ${sidebar}`}> 
+      {/* Updated grid to be responsive: 1 column on tablet, 2 on laptop */}
+      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[260px_1fr] xl:grid-cols-[272px_1fr]"> 
+        <aside className={`hidden lg:flex flex-col border-r ${sidebar}`}> 
           <div className="border-b border-inherit px-[18px] pb-7 pt-8"> 
             <h1 
               className={`${brightText} whitespace-nowrap`} 
@@ -277,43 +278,16 @@ export default function Dashboard() {
           </div> 
         </aside> 
 
-        <main className="px-11 pb-10 pt-4"> 
-          <header className={`flex items-start justify-between border-b pb-4 ${isDark ? 'border-[#4A475B]' : 'border-[#D4D0DF]'}`}> 
+        <main className="px-6 lg:px-11 pb-10 pt-4 overflow-x-hidden"> 
+          <header className={`flex flex-wrap items-center justify-between border-b pb-4 gap-4 ${isDark ? 'border-[#4A475B]' : 'border-[#D4D0DF]'}`}> 
             <div className="shrink-0"> 
-              <h2 
-                style={{ 
-                  fontFamily: 'Inter, system-ui, sans-serif', 
-                  fontWeight: 600, 
-                  fontSize: '24px', 
-                  lineHeight: '100%', 
-                  letterSpacing: '0%', 
-                  verticalAlign: 'middle', 
-                }} 
-              > 
-                Hello, Alex! 
-              </h2> 
-              <p 
-                className={`mt-2 ${softText}`} 
-                style={{ 
-                  fontFamily: 'Inter, system-ui, sans-serif', 
-                  fontWeight: 500, 
-                  fontSize: '10px', 
-                  lineHeight: '100%', 
-                  letterSpacing: '2%', 
-                  verticalAlign: 'middle', 
-                }} 
-              > 
-                Saturday, March 28 
-              </p> 
+              <h2 className="text-xl lg:text-2xl font-semibold">Hello, Alex!</h2> 
+              <p className={`mt-2 text-[10px] font-medium uppercase tracking-wider ${softText}`}>Saturday, March 28</p> 
             </div> 
 
-            <div className="flex flex-1 items-center justify-center px-8"> 
+            <div className="flex-1 min-w-[300px] flex justify-center order-3 lg:order-none w-full lg:w-auto"> 
               <div className="flex w-full max-w-md items-center gap-3"> 
-                <div 
-                  className={`flex h-10 flex-1 items-center gap-3 rounded-xl border px-4 ${ 
-                    isDark ? 'border-white/12 bg-[#2B2A37]' : 'border-[#DCCFFF] bg-white' 
-                  }`} 
-                > 
+                <div className={`flex h-10 flex-1 items-center gap-3 rounded-xl border px-4 ${isDark ? 'border-white/12 bg-[#2B2A37]' : 'border-[#DCCFFF] bg-white'}`}> 
                   <svg className={softText} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"> 
                     <circle cx="11" cy="11" r="7" /> 
                     <path d="M20 20l-3.5-3.5" /> 
@@ -327,111 +301,51 @@ export default function Dashboard() {
                 </div> 
 
                 <div className="relative"> 
-                  <button  
-                    onClick={() => setShowFilterMenu(!showFilterMenu)} 
-                    className={`group flex h-10 w-10 items-center justify-center rounded-xl border transition-all duration-200 ${ 
-                      isDark  
-                        ? 'border-white/12 bg-[#2B2A37] hover:border-violet-500 hover:bg-violet-500/10'  
-                        : 'border-[#DCCFFF] bg-white hover:border-violet-500 hover:bg-violet-50' 
-                    }`} 
-                  > 
-                    <svg  
-                      className={`${softText} group-hover:text-violet-500 transition-colors`}  
-                      width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
-                    > 
-                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /> 
-                    </svg> 
+                  <button onClick={() => setShowFilterMenu(!showFilterMenu)} className={`group flex h-10 w-10 items-center justify-center rounded-xl border transition-all duration-200 ${isDark ? 'border-white/12 bg-[#2B2A37] hover:border-violet-500' : 'border-[#DCCFFF] bg-white hover:border-violet-500'}`}> 
+                    <svg className={`${softText} group-hover:text-violet-500`} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /></svg> 
                   </button> 
-
                   {showFilterMenu && ( 
                     <div className={`absolute right-0 top-12 z-50 w-64 rounded-xl border p-4 shadow-2xl ${panel}`}> 
                       <div className="space-y-4"> 
-                        {/* Date Filter Dropdown */}
                         <div> 
                           <label className={`block text-[10px] font-bold uppercase tracking-wider ${softText} mb-1.5`}>Date Applied</label> 
                           <div className="relative"> 
-                            <button 
-                              onClick={() => setOpenDropdown(openDropdown === 'date' ? null : 'date')}
-                              className={`flex w-full items-center justify-between rounded-lg border bg-transparent p-2.5 text-sm outline-none ${isDark ? 'border-white/10 text-white' : 'border-gray-200 text-gray-900'}`}
-                            >
+                            <button onClick={() => setOpenDropdown(openDropdown === 'date' ? null : 'date')} className={`flex w-full items-center justify-between rounded-lg border bg-transparent p-2.5 text-sm outline-none ${isDark ? 'border-white/10 text-white' : 'border-gray-200 text-gray-900'}`}>
                               <span>{filters.date || 'All Dates'}</span>
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className={`transition-transform ${openDropdown === 'date' ? 'rotate-180' : ''}`}><path d="M6 9l6 6 6-6"/></svg>
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M6 9l6 6 6-6"/></svg>
                             </button>
                             {openDropdown === 'date' && (
                               <div className={`absolute left-0 top-full z-[60] mt-1 w-full overflow-hidden rounded-lg border shadow-xl ${isDark ? 'bg-[#1F1F2A] border-white/10' : 'bg-white border-gray-200'}`}>
-                                <div 
-                                  className={`px-3 py-2 text-sm cursor-pointer hover:bg-violet-500/10 flex items-center justify-between ${filters.date === '' ? 'text-violet-500 font-medium' : ''}`}
-                                  onClick={() => { setFilters({...filters, date: ''}); setOpenDropdown(null); }}
-                                >
-                                  All Dates
-                                  {filters.date === '' && <span>✓</span>}
-                                </div>
+                                <div className="px-3 py-2 text-sm cursor-pointer hover:bg-violet-500/10" onClick={() => { setFilters({...filters, date: ''}); setOpenDropdown(null); }}>All Dates</div>
                                 {uniqueDates.map(date => ( 
-                                  <div 
-                                    key={date} 
-                                    className={`px-3 py-2 text-sm cursor-pointer hover:bg-violet-500/10 flex items-center justify-between ${filters.date === date ? 'text-violet-500 font-medium' : ''}`}
-                                    onClick={() => { setFilters({...filters, date: date}); setOpenDropdown(null); }}
-                                  >
-                                    {date}
-                                    {filters.date === date && <span>✓</span>}
-                                  </div> 
+                                  <div key={date} className="px-3 py-2 text-sm cursor-pointer hover:bg-violet-500/10" onClick={() => { setFilters({...filters, date: date}); setOpenDropdown(null); }}>{date}</div> 
                                 ))} 
                               </div>
                             )}
                           </div> 
                         </div> 
-
-                        {/* Status Filter Dropdown */}
                         <div> 
                           <label className={`block text-[10px] font-bold uppercase tracking-wider ${softText} mb-1.5`}>Status</label> 
                           <div className="relative"> 
-                            <button 
-                              onClick={() => setOpenDropdown(openDropdown === 'status' ? null : 'status')}
-                              className={`flex w-full items-center justify-between rounded-lg border bg-transparent p-2.5 text-sm outline-none ${isDark ? 'border-white/10 text-white' : 'border-gray-200 text-gray-900'}`}
-                            >
+                            <button onClick={() => setOpenDropdown(openDropdown === 'status' ? null : 'status')} className={`flex w-full items-center justify-between rounded-lg border bg-transparent p-2.5 text-sm outline-none ${isDark ? 'border-white/10 text-white' : 'border-gray-200 text-gray-900'}`}>
                               <span className="capitalize">{filters.status || 'Any Status'}</span>
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className={`transition-transform ${openDropdown === 'status' ? 'rotate-180' : ''}`}><path d="M6 9l6 6 6-6"/></svg>
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M6 9l6 6 6-6"/></svg>
                             </button>
                             {openDropdown === 'status' && (
                               <div className={`absolute left-0 top-full z-[60] mt-1 w-full overflow-hidden rounded-lg border shadow-xl ${isDark ? 'bg-[#1F1F2A] border-white/10' : 'bg-white border-gray-200'}`}>
-                                <div 
-                                  className={`px-3 py-2 text-sm cursor-pointer hover:bg-violet-500/10 flex items-center justify-between ${filters.status === '' ? 'text-violet-500 font-medium' : ''}`}
-                                  onClick={() => { setFilters({...filters, status: ''}); setOpenDropdown(null); }}
-                                >
-                                  Any Status
-                                  {filters.status === '' && <span>✓</span>}
-                                </div>
+                                <div className="px-3 py-2 text-sm cursor-pointer hover:bg-violet-500/10" onClick={() => { setFilters({...filters, status: ''}); setOpenDropdown(null); }}>Any Status</div>
                                 {['Applied', 'Screening', 'Interview', 'Offer', 'Rejected'].map(s => ( 
-                                  <div 
-                                    key={s} 
-                                    className={`px-3 py-2 text-sm cursor-pointer hover:bg-violet-500/10 flex items-center justify-between ${filters.status === s.toLowerCase() ? 'text-violet-500 font-medium' : ''}`}
-                                    onClick={() => { setFilters({...filters, status: s.toLowerCase()}); setOpenDropdown(null); }}
-                                  >
-                                    {s}
-                                    {filters.status === s.toLowerCase() && <span>✓</span>}
-                                  </div> 
+                                  <div key={s} className="px-3 py-2 text-sm cursor-pointer hover:bg-violet-500/10" onClick={() => { setFilters({...filters, status: s.toLowerCase()}); setOpenDropdown(null); }}>{s}</div> 
                                 ))} 
                               </div>
                             )}
                           </div> 
                         </div> 
-
                         <div> 
                           <label className={`block text-[10px] font-bold uppercase tracking-wider ${softText} mb-1.5`}>Role</label> 
-                          <input  
-                            type="text" 
-                            value={filters.role} 
-                            placeholder="Type role..." 
-                            className={`w-full rounded-lg border bg-transparent p-2.5 text-sm outline-none ${isDark ? 'border-white/10 placeholder:text-white/30' : 'border-gray-200 placeholder:text-gray-400'}`} 
-                            onChange={(e) => setFilters({...filters, role: e.target.value})} 
-                          /> 
+                          <input type="text" value={filters.role} placeholder="Type role..." className={`w-full rounded-lg border bg-transparent p-2.5 text-sm outline-none ${isDark ? 'border-white/10 placeholder:text-white/30' : 'border-gray-200 placeholder:text-gray-400'}`} onChange={(e) => setFilters({...filters, role: e.target.value})} /> 
                         </div> 
-                        <button  
-                          onClick={() => setFilters({ date: '', status: '', role: '' })} 
-                          className="w-full text-center text-[11px] text-violet-500 hover:underline mt-2" 
-                        > 
-                          Clear Filters 
-                        </button> 
+                        <button onClick={() => setFilters({ date: '', status: '', role: '' })} className="w-full text-center text-[11px] text-violet-500 hover:underline mt-2">Clear Filters</button> 
                       </div> 
                     </div> 
                   )} 
@@ -440,10 +354,7 @@ export default function Dashboard() {
             </div> 
 
             <div className="flex shrink-0 items-center gap-4"> 
-              <Link 
-                to="/add-application" 
-                className="flex h-10 w-[215px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#7C4DFF] to-[#8D6BFF] px-8 text-white shadow-[0_12px_28px_rgba(124,77,255,0.24)] transition duration-200 hover:-translate-y-0.5 hover:brightness-110" 
-              > 
+              <Link to="/add-application" className="flex h-10 w-full lg:w-[215px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#7C4DFF] to-[#8D6BFF] px-6 text-white shadow-lg transition hover:-translate-y-0.5"> 
                 <span className="font-medium">New Application</span> 
                 <span className="text-lg leading-none">⊕</span> 
               </Link> 
@@ -451,22 +362,17 @@ export default function Dashboard() {
             </div> 
           </header> 
 
-          <section className="mt-8 flex gap-5 overflow-x-auto pb-1"> 
+          <section className="mt-8 flex gap-5 overflow-x-auto pb-4 scrollbar-hide"> 
             {stats.map((stat) => ( 
-              <div 
-                key={stat.label} 
-                className={`h-[104px] w-[249px] shrink-0 rounded-xl border px-8 py-4 text-left shadow-sm ${panel} ${toneClasses[stat.tone]}`} 
-              > 
+              <div key={stat.label} className={`h-[104px] w-[220px] lg:w-[249px] shrink-0 rounded-xl border px-6 lg:px-8 py-4 text-left shadow-sm ${panel} ${toneClasses[stat.tone]}`}> 
                 <div className="flex h-full flex-col justify-between"> 
                   <div className="min-w-0"> 
-                    <p className={`${softText} text-[12px] font-medium leading-[16px] tracking-[0.01em]`}>{stat.label}</p> 
-                    <p className={`${brightText} mt-2 text-[24px] font-semibold leading-none`}>{stat.value}</p> 
+                    <p className={`${softText} text-[12px] font-medium tracking-tight`}>{stat.label}</p> 
+                    <p className={`${brightText} mt-1 text-[22px] lg:text-[24px] font-semibold`}>{stat.value}</p> 
                   </div> 
-                  <div className="flex items-center justify-between gap-[10px] text-[12px]"> 
-                    <span className={`${stat.tone === 'red' ? 'text-[#FF5252]' : 'text-[#22C55E]'} shrink-0 font-medium leading-none`}> 
-                      {stat.delta} 
-                    </span> 
-                    <Link to="/applications" className={`${softText} shrink-0 text-[12px] cursor-pointer hover:underline`}>See more</Link> 
+                  <div className="flex items-center justify-between text-[11px]"> 
+                    <span className={stat.tone === 'red' ? 'text-[#FF5252]' : 'text-[#22C55E]'}>{stat.delta}</span> 
+                    <Link to="/applications" className={`${softText} hover:underline`}>See more</Link> 
                   </div> 
                 </div> 
               </div> 
@@ -476,51 +382,34 @@ export default function Dashboard() {
           <section className="mt-10"> 
             <div className="flex items-end justify-between"> 
               <div> 
-                <h3 
-                  style={{ 
-                    fontFamily: 'Inter, system-ui, sans-serif', 
-                    fontWeight: 500, 
-                    fontSize: '20px', 
-                    lineHeight: '100%', 
-                    letterSpacing: '0%', 
-                  }} 
-                > 
-                  Application Pipeline 
-                </h3> 
-                <p className={`mt-3 ${softText}`} style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 400, fontSize: '14px', lineHeight: '100%', letterSpacing: '0%' }}> 
-                  Drag cards to update status 
-                </p> 
+                <h3 className="text-lg lg:text-xl font-medium">Application Pipeline</h3> 
+                <p className={`mt-2 text-sm ${softText}`}>Drag cards to update status</p> 
               </div> 
-
-              <Link to="/applications" className="flex h-8 w-[125px] items-center justify-center gap-1 rounded-xl border-[1.5px] border-violet-500 text-sm text-violet-500 transition hover:bg-violet-500 hover:text-white"> 
-                See All <span>→</span> 
-              </Link> 
+              <Link to="/applications" className="flex h-8 w-[110px] items-center justify-center rounded-xl border border-violet-500 text-xs text-violet-500 transition hover:bg-violet-500 hover:text-white">See All →</Link> 
             </div> 
 
-            <div className="mt-8 grid grid-cols-5 gap-8"> 
+            {/* Changed from 5 columns to 1-5 columns based on screen size */}
+            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"> 
               {filteredPipeline.map((column) => ( 
-                <div key={column.title} className="w-[184px]"> 
-                  <div className={`flex h-8 w-[184px] items-center gap-2 rounded-lg border-[1.5px] px-4 ${badgeClasses[column.tone]}`}> 
-                    <span className="text-xs">●</span> 
-                    <span className="truncate font-medium">{column.title}</span> 
+                <div key={column.title} className="w-full"> 
+                  <div className={`flex h-8 w-full items-center gap-2 rounded-lg border-[1.5px] px-3 ${badgeClasses[column.tone]}`}> 
+                    <span className="text-[10px]">●</span> 
+                    <span className="truncate text-xs font-semibold uppercase tracking-wider">{column.title}</span> 
                   </div> 
 
                   <div className="mt-4 space-y-3"> 
                     {column.cards.map((card, index) => ( 
-                      <div 
-                        key={`${column.title}-${index}`} 
-                        className={`h-[84px] w-[184px] rounded-xl border ${panel} px-4 py-3 transition-all hover:border-violet-400`} 
-                      > 
+                      <div key={`${column.title}-${index}`} className={`h-[84px] w-full rounded-xl border ${panel} px-4 py-3 transition-all hover:border-violet-400 hover:shadow-md cursor-pointer`}> 
                         <div className="flex h-full flex-col justify-center"> 
-                          <p className={`${brightText} truncate text-[14px] font-semibold leading-[18px]`}>{card.company}</p> 
-                          <p className={`${softText} mt-1 truncate text-[11px] leading-[14px]`}>{card.role}</p> 
-                          <p className={`${softText} mt-2 text-[11px] leading-none`}>{card.age}</p> 
+                          <p className={`${brightText} truncate text-[14px] font-semibold`}>{card.company}</p> 
+                          <p className={`${softText} mt-0.5 truncate text-[11px]`}>{card.role}</p> 
+                          <p className={`${softText} mt-1.5 text-[10px]`}>{card.age}</p> 
                         </div> 
                       </div> 
                     ))} 
                     {column.cards.length === 0 && ( 
-                      <div className={`h-[84px] w-[184px] rounded-xl border border-dashed flex items-center justify-center ${isDark ? 'border-white/5' : 'border-gray-100'}`}> 
-                        <span className="text-[10px] opacity-20">No matches</span> 
+                      <div className={`h-[84px] w-full rounded-xl border border-dashed flex items-center justify-center opacity-40 ${isDark ? 'border-white/10' : 'border-gray-200'}`}> 
+                        <span className="text-[10px]">No matches</span> 
                       </div> 
                     )} 
                   </div> 
@@ -529,77 +418,50 @@ export default function Dashboard() {
             </div> 
           </section> 
 
-          <section className="mt-12 grid grid-cols-1 gap-8 xl:grid-cols-3"> 
-            <div className={`h-[348px] w-full max-w-[326px] rounded-xl border ${panel} px-5 py-5`}> 
-              <div className="flex items-start justify-between gap-4"> 
-                <div className="min-w-0"> 
-                  <h4 className="text-[17px] font-semibold leading-tight">Weekly Activity</h4> 
-                  <p className={`${softText} mt-2 whitespace-nowrap text-[11px] leading-[15px]`}>Application sent per day</p> 
-                </div> 
-                <span className="shrink-0 rounded-md bg-[#332E59] px-3 py-1 text-[9px] text-white/80">24.03.2026-31.03.2026</span> 
+          <section className="mt-12 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8"> 
+            <div className={`w-full rounded-xl border ${panel} p-5 flex flex-col`}> 
+              <div className="flex items-start justify-between"> 
+                <div><h4 className="text-[16px] font-semibold">Weekly Activity</h4><p className={`${softText} text-[11px]`}>Applications sent per day</p></div> 
+                <span className="rounded-md bg-violet-500/10 px-2 py-1 text-[9px] text-violet-400">Mar 24 - Mar 31</span> 
               </div> 
-              <div className="mt-6 flex h-[172px] items-end justify-between gap-2"> 
-                {[5, 9, 6, 4, 3, 2, 7].map((value, index) => ( 
-                  <div key={index} className="flex flex-1 flex-col items-center gap-2"> 
-                    <span className="text-[11px] font-medium">{value}</span> 
-                    <div className="flex h-[148px] w-full items-end rounded-full bg-[#322A57] p-1"> 
-                      <div 
-                        className="w-full rounded-full bg-gradient-to-t from-[#7C4DFF] to-[#5D4AB5]" 
-                        style={{ height: `${28 + value * 10}px` }} 
-                      /> 
+              <div className="mt-6 flex h-[160px] items-end justify-between gap-2"> 
+                {[5, 9, 6, 4, 3, 2, 7].map((v, i) => ( 
+                  <div key={i} className="flex flex-1 flex-col items-center gap-2"> 
+                    <span className="text-[10px]">{v}</span> 
+                    <div className="w-full bg-violet-500/10 rounded-full h-full flex items-end overflow-hidden"> 
+                      <div className="w-full bg-gradient-to-t from-violet-600 to-violet-400 rounded-full" style={{ height: `${v * 10}%` }} /> 
                     </div> 
                   </div> 
                 ))} 
               </div> 
-              <p className="mt-5 text-[12px] leading-[16px] text-violet-400">36 applications this week</p> 
-              <p className={`${softText} mt-2 text-[11px] leading-[15px]`}>↗ 12% compared to last week</p> 
+              <p className="mt-5 text-sm text-violet-400 font-medium">36 applications this week</p> 
             </div> 
 
-            <div className={`h-[348px] w-full max-w-[326px] rounded-xl border ${panel} px-5 py-5`}> 
-              <h4 className="text-[17px] font-semibold leading-tight">AI Resume Analyzer</h4> 
-              <p className={`${softText} mt-2 text-[11px] leading-[15px]`}>Last Scan: 2 days ago</p> 
-              <div className="mt-6 flex items-center justify-between gap-4"> 
-                <div className="relative flex h-[122px] w-[122px] shrink-0 items-center justify-center rounded-full border-[12px] border-[#7C4DFF] border-r-white/50 border-t-white/60"> 
-                  <div className="text-center"> 
-                    <p className="text-[18px] font-semibold leading-none">66%</p> 
-                    <p className={`${softText} mt-1 text-[11px]`}>Match</p> 
-                  </div> 
+            <div className={`w-full rounded-xl border ${panel} p-5 flex flex-col`}> 
+              <h4 className="text-[16px] font-semibold">AI Resume Analyzer</h4> 
+              <p className={`${softText} text-[11px]`}>Last Scan: 2 days ago</p> 
+              <div className="mt-6 flex items-center gap-4"> 
+                <div className="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-full border-[10px] border-violet-500 border-r-transparent animate-pulse"> 
+                  <span className="text-lg font-bold">66%</span> 
                 </div> 
-                <div className="min-w-0 flex-1"> 
-                  <div className="flex items-center gap-2 text-[12px] font-medium leading-[16px]"> 
-                    <span className="text-[#FF5252]">⊗</span> 
-                    <span>Missing Keywords</span> 
-                  </div> 
-                  <div className="mt-4 flex flex-wrap gap-2"> 
-                    {['UX Research', 'Figma', 'User Journey'].map((tag) => ( 
-                      <span key={tag} className="rounded-md bg-[#332E59] px-2.5 py-2 text-[10px] leading-none text-white/85">{tag}</span> 
-                    ))} 
+                <div className="flex-1 space-y-3"> 
+                  <div className="text-[11px] flex items-center gap-2 text-red-400 font-semibold"><span className="text-lg">⊗</span> Missing Keywords</div> 
+                  <div className="flex flex-wrap gap-1.5"> 
+                    {['Figma', 'UX Research'].map(t => <span key={t} className="bg-violet-500/10 px-2 py-1 rounded text-[10px] text-violet-300">{t}</span>)} 
                   </div> 
                 </div> 
               </div> 
-              <button className="mt-12 flex w-full items-center justify-center gap-2 rounded-[16px] border border-violet-400/80 bg-gradient-to-r from-[#2A2340] via-[#31264A] to-[#261F3C] px-4 py-3.5 text-[14px] font-semibold text-violet-300 shadow-[0_12px_30px_rgba(124,77,255,0.14)] transition duration-200 hover:-translate-y-0.5 hover:border-[#d9cff9] hover:bg-[#bfb1ea] hover:bg-none hover:text-[#2a2144] hover:shadow-[0_0_20px_rgba(124,77,255,0.4)] active:scale-[0.985]"> 
-                <span>Analyze New Resume</span> 
-                <span className="text-[16px] leading-none">↗</span> 
-              </button> 
+              <button className="mt-auto w-full py-3 rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-400 text-sm font-semibold hover:bg-violet-500 hover:text-white transition">Analyze New Resume</button> 
             </div> 
 
-            <div className={`h-[348px] w-full max-w-[326px] rounded-xl border ${panel} px-5 py-5`}> 
-              <div className="flex items-center justify-between gap-4"> 
-                <Link to="/reminders" className="text-[17px] font-semibold leading-tight">Reminders</Link> 
-                <Link to="/reminders" className="shrink-0 rounded-xl border border-violet-500 px-3 py-2 text-[12px] font-medium text-violet-500 transition hover:bg-violet-500/10">Add ⊕</Link> 
-              </div> 
-              <div className="mt-4 space-y-2.5"> 
-                {reminders.map((reminder, index) => ( 
-                  <Link key={index} to="/reminders" className={`block h-[58px] w-full max-w-[272px] rounded-[10px] border-[1.2px] ${panel} px-3 py-2.5 transition hover:border-violet-400/50`}> 
-                    <div className="flex items-center justify-between gap-[10px]"> 
-                      <div className="flex min-w-0 items-start gap-3"> 
-                        <span className={reminder.tone === 'red' ? 'text-[#FF5252]' : reminder.tone === 'amber' ? 'text-[#F59E0B]' : 'text-[#22C55E]'}>●</span> 
-                        <div className="min-w-0"> 
-                          <p className="truncate text-[11px] font-medium leading-[14px]">{reminder.title}</p> 
-                          <p className={`${softText} mt-1 truncate text-[10px] leading-[12px]`}>{reminder.detail}</p> 
-                        </div> 
-                      </div> 
-                      <span className={`${softText} shrink-0 text-[13px]`}>→</span> 
+            <div className={`w-full rounded-xl border ${panel} p-5 flex flex-col`}> 
+              <div className="flex items-center justify-between"><h4 className="text-[16px] font-semibold">Reminders</h4><button className="text-xs text-violet-500">Add ⊕</button></div> 
+              <div className="mt-4 space-y-3"> 
+                {reminders.map((r, i) => ( 
+                  <Link key={i} to="/reminders" className={`block p-3 rounded-lg border border-inherit bg-inherit hover:border-violet-500/40 transition`}> 
+                    <div className="flex items-center justify-between"> 
+                      <div className="flex items-center gap-3"><span className={r.tone === 'red' ? 'text-red-500' : 'text-green-500'}>●</span><div><p className="text-xs font-medium">{r.title}</p><p className={`${softText} text-[10px]`}>{r.detail}</p></div></div> 
+                      <span className={softText}>→</span> 
                     </div> 
                   </Link> 
                 ))} 
