@@ -144,8 +144,7 @@ export default function Dashboard() {
   const [search, setSearch] = useState(''); 
   const [showFilterMenu, setShowFilterMenu] = useState(false); 
   const [filters, setFilters] = useState({ date: '', status: '', role: '' }); 
-  
-  const [openDropdown, setOpenDropdown] = useState(null); // Tracks which filter sub-menu is open
+  const [openDropdown, setOpenDropdown] = useState(null);
 
   const deferredSearch = useDeferredValue(search); 
 
@@ -180,8 +179,10 @@ export default function Dashboard() {
 
   return ( 
     <div className={`min-h-screen font-sans ${shell}`}> 
-      <div className="grid min-h-screen grid-cols-[272px_1fr]"> 
-        <aside className={`flex flex-col border-r ${sidebar}`}> 
+      <div className="flex min-h-screen">
+
+        {/* ── Sidebar ── fixed width, never shrinks */}
+        <aside className={`flex w-[272px] shrink-0 flex-col border-r ${sidebar}`}> 
           <div className="border-b border-inherit px-[18px] pb-7 pt-8"> 
             <h1 
               className={`${brightText} whitespace-nowrap`} 
@@ -277,7 +278,10 @@ export default function Dashboard() {
           </div> 
         </aside> 
 
-        <main className="px-11 pb-10 pt-4"> 
+        {/* ── Main content ── takes all remaining width */}
+        <main className="flex min-w-0 flex-1 flex-col px-8 pb-10 pt-4 xl:px-11">
+
+          {/* Header */}
           <header className={`flex items-start justify-between border-b pb-4 ${isDark ? 'border-[#4A475B]' : 'border-[#D4D0DF]'}`}> 
             <div className="shrink-0"> 
               <h2 
@@ -307,7 +311,7 @@ export default function Dashboard() {
               </p> 
             </div> 
 
-            <div className="flex flex-1 items-center justify-center px-8"> 
+            <div className="flex flex-1 items-center justify-center px-6"> 
               <div className="flex w-full max-w-md items-center gap-3"> 
                 <div 
                   className={`flex h-10 flex-1 items-center gap-3 rounded-xl border px-4 ${ 
@@ -346,7 +350,7 @@ export default function Dashboard() {
                   {showFilterMenu && ( 
                     <div className={`absolute right-0 top-12 z-50 w-64 rounded-xl border p-4 shadow-2xl ${panel}`}> 
                       <div className="space-y-4"> 
-                        {/* Date Filter Dropdown */}
+                        {/* Date Filter */}
                         <div> 
                           <label className={`block text-[10px] font-bold uppercase tracking-wider ${softText} mb-1.5`}>Date Applied</label> 
                           <div className="relative"> 
@@ -381,7 +385,7 @@ export default function Dashboard() {
                           </div> 
                         </div> 
 
-                        {/* Status Filter Dropdown */}
+                        {/* Status Filter */}
                         <div> 
                           <label className={`block text-[10px] font-bold uppercase tracking-wider ${softText} mb-1.5`}>Status</label> 
                           <div className="relative"> 
@@ -451,18 +455,19 @@ export default function Dashboard() {
             </div> 
           </header> 
 
-          <section className="mt-8 flex gap-5 overflow-x-auto pb-1"> 
+          {/* ── Stats row ── each card grows equally */}
+          <section className="mt-8 flex gap-5"> 
             {stats.map((stat) => ( 
               <div 
                 key={stat.label} 
-                className={`h-[104px] w-[249px] shrink-0 rounded-xl border px-8 py-4 text-left shadow-sm ${panel} ${toneClasses[stat.tone]}`} 
+                className={`flex-1 min-w-0 rounded-xl border px-6 py-4 text-left shadow-sm ${panel} ${toneClasses[stat.tone]}`} 
               > 
-                <div className="flex h-full flex-col justify-between"> 
+                <div className="flex h-full flex-col justify-between gap-4"> 
                   <div className="min-w-0"> 
                     <p className={`${softText} text-[12px] font-medium leading-[16px] tracking-[0.01em]`}>{stat.label}</p> 
                     <p className={`${brightText} mt-2 text-[24px] font-semibold leading-none`}>{stat.value}</p> 
                   </div> 
-                  <div className="flex items-center justify-between gap-[10px] text-[12px]"> 
+                  <div className="flex items-center justify-between gap-2 text-[12px]"> 
                     <span className={`${stat.tone === 'red' ? 'text-[#FF5252]' : 'text-[#22C55E]'} shrink-0 font-medium leading-none`}> 
                       {stat.delta} 
                     </span> 
@@ -473,6 +478,7 @@ export default function Dashboard() {
             ))} 
           </section> 
 
+          {/* ── Application Pipeline ── */}
           <section className="mt-10"> 
             <div className="flex items-end justify-between"> 
               <div> 
@@ -497,29 +503,30 @@ export default function Dashboard() {
               </Link> 
             </div> 
 
-            <div className="mt-8 grid grid-cols-5 gap-8"> 
+            {/* Pipeline grid — 5 equal fluid columns */}
+            <div className="mt-8 grid grid-cols-5 gap-4"> 
               {filteredPipeline.map((column) => ( 
-                <div key={column.title} className="w-[184px]"> 
-                  <div className={`flex h-8 w-[184px] items-center gap-2 rounded-lg border-[1.5px] px-4 ${badgeClasses[column.tone]}`}> 
-                    <span className="text-xs">●</span> 
-                    <span className="truncate font-medium">{column.title}</span> 
+                <div key={column.title} className="min-w-0 w-full"> 
+                  <div className={`flex h-8 w-full items-center gap-2 rounded-lg border-[1.5px] px-3 ${badgeClasses[column.tone]}`}> 
+                    <span className="text-xs shrink-0">●</span> 
+                    <span className="truncate font-medium text-sm">{column.title}</span> 
                   </div> 
 
                   <div className="mt-4 space-y-3"> 
                     {column.cards.map((card, index) => ( 
                       <div 
                         key={`${column.title}-${index}`} 
-                        className={`h-[84px] w-[184px] rounded-xl border ${panel} px-4 py-3 transition-all hover:border-violet-400`} 
+                        className={`w-full rounded-xl border ${panel} px-3 py-3 transition-all hover:border-violet-400`} 
                       > 
-                        <div className="flex h-full flex-col justify-center"> 
-                          <p className={`${brightText} truncate text-[14px] font-semibold leading-[18px]`}>{card.company}</p> 
-                          <p className={`${softText} mt-1 truncate text-[11px] leading-[14px]`}>{card.role}</p> 
-                          <p className={`${softText} mt-2 text-[11px] leading-none`}>{card.age}</p> 
+                        <div className="flex flex-col justify-center gap-1"> 
+                          <p className={`${brightText} truncate text-[13px] font-semibold leading-[18px]`}>{card.company}</p> 
+                          <p className={`${softText} truncate text-[11px] leading-[14px]`}>{card.role}</p> 
+                          <p className={`${softText} text-[11px] leading-none`}>{card.age}</p> 
                         </div> 
                       </div> 
                     ))} 
                     {column.cards.length === 0 && ( 
-                      <div className={`h-[84px] w-[184px] rounded-xl border border-dashed flex items-center justify-center ${isDark ? 'border-white/5' : 'border-gray-100'}`}> 
+                      <div className={`w-full rounded-xl border border-dashed flex items-center justify-center py-8 ${isDark ? 'border-white/5' : 'border-gray-100'}`}> 
                         <span className="text-[10px] opacity-20">No matches</span> 
                       </div> 
                     )} 
@@ -529,16 +536,19 @@ export default function Dashboard() {
             </div> 
           </section> 
 
-          <section className="mt-12 grid grid-cols-1 gap-8 xl:grid-cols-3"> 
-            <div className={`h-[348px] w-full max-w-[326px] rounded-xl border ${panel} px-5 py-5`}> 
+          {/* ── Bottom widgets ── 3 equal fluid columns */}
+          <section className="mt-12 grid grid-cols-3 gap-6"> 
+
+            {/* Weekly Activity */}
+            <div className={`w-full rounded-xl border ${panel} px-5 py-5`}> 
               <div className="flex items-start justify-between gap-4"> 
                 <div className="min-w-0"> 
                   <h4 className="text-[17px] font-semibold leading-tight">Weekly Activity</h4> 
-                  <p className={`${softText} mt-2 whitespace-nowrap text-[11px] leading-[15px]`}>Application sent per day</p> 
+                  <p className={`${softText} mt-2 text-[11px] leading-[15px]`}>Application sent per day</p> 
                 </div> 
-                <span className="shrink-0 rounded-md bg-[#332E59] px-3 py-1 text-[9px] text-white/80">24.03.2026-31.03.2026</span> 
+                <span className="shrink-0 rounded-md bg-[#332E59] px-3 py-1 text-[9px] text-white/80 whitespace-nowrap">24.03.2026-31.03.2026</span> 
               </div> 
-              <div className="mt-6 flex h-[172px] items-end justify-between gap-2"> 
+              <div className="mt-6 flex h-[172px] items-end justify-between gap-1"> 
                 {[5, 9, 6, 4, 3, 2, 7].map((value, index) => ( 
                   <div key={index} className="flex flex-1 flex-col items-center gap-2"> 
                     <span className="text-[11px] font-medium">{value}</span> 
@@ -555,7 +565,8 @@ export default function Dashboard() {
               <p className={`${softText} mt-2 text-[11px] leading-[15px]`}>↗ 12% compared to last week</p> 
             </div> 
 
-            <div className={`h-[348px] w-full max-w-[326px] rounded-xl border ${panel} px-5 py-5`}> 
+            {/* AI Resume Analyzer */}
+            <div className={`w-full rounded-xl border ${panel} px-5 py-5`}> 
               <h4 className="text-[17px] font-semibold leading-tight">AI Resume Analyzer</h4> 
               <p className={`${softText} mt-2 text-[11px] leading-[15px]`}>Last Scan: 2 days ago</p> 
               <div className="mt-6 flex items-center justify-between gap-4"> 
@@ -585,17 +596,18 @@ export default function Dashboard() {
               </Link>
             </div> 
 
-            <div className={`h-[348px] w-full max-w-[326px] rounded-xl border ${panel} px-5 py-5`}> 
+            {/* Reminders */}
+            <div className={`w-full rounded-xl border ${panel} px-5 py-5`}> 
               <div className="flex items-center justify-between gap-4"> 
                 <Link to="/reminders" className="text-[17px] font-semibold leading-tight">Reminders</Link> 
                 <Link to="/reminders" className="shrink-0 rounded-xl border border-violet-500 px-3 py-2 text-[12px] font-medium text-violet-500 transition hover:bg-violet-500/10">Add ⊕</Link> 
               </div> 
               <div className="mt-4 space-y-2.5"> 
                 {reminders.map((reminder, index) => ( 
-                  <Link key={index} to="/reminders" className={`block h-[58px] w-full max-w-[272px] rounded-[10px] border-[1.2px] ${panel} px-3 py-2.5 transition hover:border-violet-400/50`}> 
-                    <div className="flex items-center justify-between gap-[10px]"> 
+                  <Link key={index} to="/reminders" className={`flex h-[58px] w-full rounded-[10px] border-[1.2px] ${panel} px-3 py-2.5 transition hover:border-violet-400/50 items-center`}> 
+                    <div className="flex w-full items-center justify-between gap-[10px]"> 
                       <div className="flex min-w-0 items-start gap-3"> 
-                        <span className={reminder.tone === 'red' ? 'text-[#FF5252]' : reminder.tone === 'amber' ? 'text-[#F59E0B]' : 'text-[#22C55E]'}>●</span> 
+                        <span className={`shrink-0 ${reminder.tone === 'red' ? 'text-[#FF5252]' : reminder.tone === 'amber' ? 'text-[#F59E0B]' : 'text-[#22C55E]'}`}>●</span> 
                         <div className="min-w-0"> 
                           <p className="truncate text-[11px] font-medium leading-[14px]">{reminder.title}</p> 
                           <p className={`${softText} mt-1 truncate text-[10px] leading-[12px]`}>{reminder.detail}</p> 
@@ -607,6 +619,7 @@ export default function Dashboard() {
                 ))} 
               </div> 
             </div> 
+
           </section> 
         </main> 
       </div> 
