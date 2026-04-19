@@ -181,9 +181,9 @@ export default function Landing() {
         .roadmap-item { opacity: 0.1; transform: translateY(20px); transition: 0.8s ease-out; }
         .roadmap-item.active { opacity: 1; transform: translateY(0); }
 
-        .team-card-container { perspective: 1000px; height: 320px; }
+        .team-card-container { perspective: 1000px; min-height: 320px; width: 100%; }
         .team-card-inner {
-          position: relative; width: 100%; height: 100%;
+          position: relative; width: 100%; height: 320px;
           transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
           transform-style: preserve-3d;
         }
@@ -211,47 +211,57 @@ export default function Landing() {
           content: ''; position: absolute; inset: 0; background: linear-gradient(120deg,rgba(72,110,255,0.5),rgba(124,92,255,0.6),rgba(255,140,71,0.4));
           background-size: 300% 300%; animation: gradMove 6s ease infinite;
         }
-        .nh-cta-inner { position: relative; padding: 60px 40px; border-radius: 34px; z-index: 1; }
+        .nh-cta-inner { position: relative; padding: 60px 20px; border-radius: 34px; z-index: 1; }
         @keyframes gradMove { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+
+        @media (max-width: 768px) {
+          .nav-links { display: none !important; }
+          .hero-title { font-size: 48px !important; }
+          .roadmap-line { left: 20px !important; }
+          .roadmap-item { justify-content: flex-start !important; padding-left: 45px !important; }
+          .roadmap-item div { width: 100% !important; }
+          .roadmap-dot { left: 20px !important; }
+          footer div { grid-template-columns: 1fr !important; }
+        }
       `}</style>
 
       <div style={{ background: bg, color: textPrimary, fontFamily: "'DM Sans', sans-serif", minHeight: '100vh', transition: 'background 0.3s' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
 
-          {/* ── NAV ── */}
-          <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 28px', background: surface, border: `0.5px solid ${navBorder}`, borderRadius: 28, margin: '14px 20px 0', backdropFilter: 'blur(18px)', position: 'sticky', top: 10, zIndex: 100 }}>
+          {/* ── NAV (Fixed: Margin top removed and sticky top set to 0) ── */}
+          <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: surface, border: `0.5px solid ${navBorder}`, borderRadius: 28, margin: '0 10px', backdropFilter: 'blur(18px)', position: 'sticky', top: 0, zIndex: 100 }}>
             <LogoMark size={24} color={textPrimary} />
             
-            <div style={{ display: 'flex', gap: 28 }}>
+            <div className="nav-links" style={{ display: 'flex', gap: 28 }}>
               {[['Features', '#features'], ['About', '#about'], ['Team', '#team']].map(([l, h]) => (
                 <a key={l} href={h} style={{ textDecoration: 'none', fontSize: 16, color: textSoft }}>{l}</a>
               ))}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <Link to="/register"><button className="btn-nav-signup">Sign up</button></Link>
-              <Link to="/login"><button className="btn-nav-signin">Sign in</button></Link>
+              <Link to="/login"><button className="btn-nav-signin" style={{ display: window.innerWidth < 480 ? 'none' : 'block' }}>Sign in</button></Link>
               <ThemeToggle />
             </div>
           </nav>
 
-          <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px 60px' }}>
+          <div style={{ width: '100%', margin: '0 auto', padding: '0 20px 60px' }}>
             
             {/* ── HERO ── */}
-            <div style={{ textAlign: 'center', marginTop: 80 }}>
-              <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 64, lineHeight: 1, color: textPrimary, marginBottom: 20 }}>
+            <div style={{ textAlign: 'center', marginTop: 60 }}>
+              <h1 className="hero-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 'clamp(40px, 8vw, 64px)', lineHeight: 1.1, color: textPrimary, marginBottom: 20 }}>
                 <span style={gradStyle}>NextHire</span><br />Career Intelligence
               </h1>
-              <p style={{ maxWidth: 640, margin: '0 auto 32px', fontSize: 18, color: textSoft, lineHeight: 1.6 }}>
+              <p style={{ maxWidth: 640, margin: '0 auto 32px', fontSize: 'clamp(16px, 2vw, 18px)', color: textSoft, lineHeight: 1.6 }}>
                 Track applications, analyze resume fit with AI, and stay organized through the hiring journey.
               </p>
-              <div style={{ background: codebarBg, borderRadius: 16, padding: '16px 28px', margin: '0 auto 40px', maxWidth: 480, color: '#fff', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ color: '#ff8c47' }}>$</span><span>{twText}</span><span className="tw-cursor" />
+              <div style={{ background: codebarBg, borderRadius: 16, padding: '16px 28px', margin: '0 auto 40px', maxWidth: '90%', width: 480, color: '#fff', display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
+                <span style={{ color: '#ff8c47' }}>$</span><span style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}>{twText}</span><span className="tw-cursor" />
               </div>
             </div>
 
             {/* ── STATS ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
               {statCards.map(item => (
                 <div key={item.label} style={{ background: surface, border: `0.5px solid ${cardBorder}`, borderRadius: 24, padding: '32px 20px', textAlign: 'center' }}>
                   <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(124,92,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', color: '#7c5cff' }}>
@@ -264,10 +274,10 @@ export default function Landing() {
             </div>
 
             {/* ── FEATURES ── */}
-            <div id="features" style={{ margin: '100px 0 40px', textAlign: 'center' }}>
-               <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 42 }}>Platform Features</h2>
+            <div id="features" style={{ margin: '80px 0 40px', textAlign: 'center' }}>
+               <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 'clamp(32px, 5vw, 42px)' }}>Platform Features</h2>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
               {featureCards.map(card => (
                 <div key={card.title} className="nh-feature" style={{ background: surface, border: `1.5px solid ${cardBorder}`, borderRadius: 24, padding: 28, transition: '0.3s' }}>
                   <div style={{ width: 44, height: 44, background: 'rgba(124,92,255,0.1)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7c5cff', marginBottom: 20 }}>
@@ -280,13 +290,13 @@ export default function Landing() {
             </div>
 
             {/* ── ABOUT ── */}
-            <div id="about" ref={roadmapRef} style={{ margin: '100px auto', position: 'relative', maxWidth: 900 }}>
-              <div style={{ textAlign: 'center', marginBottom: 80 }}>
-                <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 42 }}>About NextHire</h2>
+            <div id="about" ref={roadmapRef} style={{ margin: '80px auto', position: 'relative', maxWidth: 900, width: '100%' }}>
+              <div style={{ textAlign: 'center', marginBottom: 60 }}>
+                <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 'clamp(32px, 5vw, 42px)' }}>About NextHire</h2>
                 <p style={{ color: textSoft, marginTop: 10 }}>Defining our journey and core principles.</p>
               </div>
 
-              <div style={{ position: 'absolute', left: '50%', top: 140, bottom: 40, width: 4, background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(124,92,255,0.1)', transform: 'translateX(-50%)', borderRadius: 2 }}>
+              <div className="roadmap-line" style={{ position: 'absolute', left: '50%', top: 140, bottom: 40, width: 4, background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(124,92,255,0.1)', transform: 'translateX(-50%)', borderRadius: 2 }}>
                 <div style={{ width: '100%', height: `${scrollProgress * 100}%`, background: '#7c5cff', boxShadow: '0 0 20px #7c5cff', transition: 'height 0.1s linear' }} />
               </div>
 
@@ -294,11 +304,11 @@ export default function Landing() {
                 <div key={item.tag} className={`roadmap-item ${scrollProgress > (i * 0.3) ? 'active' : ''}`} style={{ 
                   display: 'flex', 
                   justifyContent: item.side === 'left' ? 'flex-start' : 'flex-end',
-                  marginBottom: 80,
+                  marginBottom: 60,
                   width: '100%',
                   position: 'relative'
                 }}>
-                  <div style={{ 
+                  <div className="roadmap-dot" style={{ 
                     position: 'absolute', left: '50%', top: 20, width: 14, height: 14, 
                     background: scrollProgress > (i * 0.3) ? '#7c5cff' : (isDark ? '#1a1a24' : '#fff'), 
                     border: '3px solid #7c5cff', borderRadius: '50%', transform: 'translateX(-50%)', zIndex: 2,
@@ -306,7 +316,7 @@ export default function Landing() {
                     transition: '0.4s'
                   }} />
 
-                  <div style={{ width: '44%', background: surface, padding: 32, borderRadius: 24, border: `1.5px solid ${cardBorder}` }}>
+                  <div style={{ width: '45%', background: surface, padding: 24, borderRadius: 24, border: `1.5px solid ${cardBorder}` }}>
                     <span style={{ fontSize: 12, fontWeight: 700, color: '#b083ff', letterSpacing: 2, textTransform: 'uppercase' }}>{item.tag}</span>
                     <p style={{ marginTop: 15, fontSize: 15, color: textSoft, lineHeight: 1.7 }}>{item.text}</p>
                   </div>
@@ -315,10 +325,10 @@ export default function Landing() {
             </div>
 
             {/* ── TEAM ── */}
-            <div id="team" style={{ margin: '100px 0 40px', textAlign: 'center' }}>
-               <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 42 }}>Meet the Team</h2>
+            <div id="team" style={{ margin: '80px 0 40px', textAlign: 'center' }}>
+               <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 'clamp(32px, 5vw, 42px)' }}>Meet the Team</h2>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
               {team.map(member => (
                 <div key={member.id} className="team-card-container">
                   <div className="team-card-inner">
@@ -344,7 +354,7 @@ export default function Landing() {
             {/* ── ANIMATED CTA ── */}
             <div className="nh-cta-wrap" style={{ marginTop: 80 }}>
               <div className="nh-cta-inner" style={{ background: ctaInnerBg }}>
-                <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 38, lineHeight: 1.1, color: textPrimary }}>
+                <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 'clamp(28px, 4vw, 38px)', lineHeight: 1.1, color: textPrimary }}>
                   Ready to build <span style={gradStyle}>better job search habits?</span>
                 </h2>
                 <p style={{ margin: '14px auto 0', maxWidth: 560, fontSize: 14, lineHeight: 1.8, color: textSoft }}>
@@ -354,11 +364,6 @@ export default function Landing() {
                   <Link to="/register"><button className="btn-hero-primary">Create account</button></Link>
                   <Link to="/login">  <button className="btn-hero-outline">Sign in</button></Link>
                 </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, justifyContent: 'center', marginTop: 22 }}>
-                  {['Smart application tracking', 'AI resume matching', 'University team project'].map(t => (
-                    <span key={t} style={{ fontSize: 12, color: textSoft }}>{t}</span>
-                  ))}
-                </div>
               </div>
             </div>
 
@@ -366,7 +371,7 @@ export default function Landing() {
 
           {/* ── FOOTER ── */}
           <footer style={{ borderTop: `0.5px solid ${footerLine}`, padding: '36px 20px 28px', marginTop: 44 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 0.7fr 0.8fr', gap: 32, maxWidth: 1100, margin: '0 auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 32, maxWidth: 1100, margin: '0 auto' }}>
               <div>
                 <div style={{ marginBottom: 14 }}><LogoMark size={20} color={textPrimary} /></div>
                 <p style={{ fontSize: 12, lineHeight: 1.85, color: textSoft, maxWidth: 340 }}>
