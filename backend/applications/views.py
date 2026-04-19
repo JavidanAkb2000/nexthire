@@ -3,6 +3,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response   
 from .models import JobApplication, Reminder
 from .serializers import JobApplicationSerializer, ReminderSerializer
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from django.utils import timezone
+from datetime import timedelta
 
 class JobApplicationListCreateView(generics.ListCreateAPIView):
     serializer_class = JobApplicationSerializer
@@ -78,3 +82,152 @@ class DashboardSummaryView(APIView):
             "stats": stats,
             "upcoming_reminders": reminders_data
         })
+    
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def dashboard_stats(request):
+    today = timezone.now()
+    week_ago = today - timedelta(days=7)
+    
+    # Giriş yapan kullanıcının başvuruları
+    user_apps = JobApplication.objects.filter(user=request.user)
+    
+    stats = {
+        "total_applied": user_apps.count(),
+        # Not: status isimlerinin models.py'deki choices ile birebir aynı olmasına dikkat et
+        "total_offered": user_apps.filter(status='offer').count(), 
+        "total_interviewed": user_apps.filter(status='interview').count(),
+        "total_rejected": user_apps.filter(status='rejected').count(),
+        
+        "applied_this_week": user_apps.filter(created_at__gte=week_ago).count(),
+        "offered_this_week": user_apps.filter(status='offer', created_at__gte=week_ago).count(),
+        "interviewed_this_week": user_apps.filter(status='interview', created_at__gte=week_ago).count(),
+        "rejected_this_week": user_apps.filter(status='rejected', created_at__gte=week_ago).count(),
+    }
+    return Response(stats)
+# --------------------------------------------------------
+
+# --- GÜNCELLENEN KISIM: Application Pipeline ---
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def application_pipeline(request):
+    # Kullanıcının tüm başvurularını en yeniden eskiye doğru (-id) çek
+    user_apps = JobApplication.objects.filter(user=request.user).order_by('-id')
+
+    pipeline_data = {
+        "applied": [],
+        "screening": [],
+        "interview": [],
+        "offer": [],
+        "rejected": []
+    }
+
+    today = timezone.now().date()
+
+    for app in user_apps:
+        # Statüyü kontrol et, eğer listede yoksa 'applied' kolonuna at
+        status = app.status.lower() if app.status else 'applied'
+        if status not in pipeline_data:
+            status = 'applied'
+
+        # İSTEĞİN ÜZERİNE EKLENDİ: Eğer bu kolonda zaten 4 tane kart varsa, 5.yi ekleme ve diğerine geç!
+        if len(pipeline_data[status]) >= 4:
+            continue
+
+        # BURASI DÜZELDİ: Artık eski applied_date yerine yeni application_date kullanıyoruz!
+        try:
+            # application_date boşsa created_at kullan, o da yoksa bugünü baz al
+            app_date = app.application_date or (app.created_at.date() if app.created_at else today)
+            delta_days = (today - app_date).days
+            
+            if delta_days == 0:
+                age_str = "Today"
+            elif delta_days == 1:
+                age_str = "1 day ago"
+            elif delta_days > 1:
+                age_str = f"{delta_days} days ago"
+            else:
+                age_str = "Future" # Eğer gelecekteki bir tarih seçilmişse
+        except Exception as e:
+            age_str = "Recently"
+
+        # Sania'nın kart tasarımında beklediği formata göre veriyi hazırla
+        pipeline_data[status].append({
+            "id": app.id,
+            "company": getattr(app, 'company_name', 'Unknown') or 'Unknown',
+            "role": getattr(app, 'job_title', 'Unknown') or 'Unknown',
+            "age": age_str
+        })
+
+    return Response(pipeline_data)
+# ----------------------------------------------------
+# ----------------------------------------------------
+
+from django.db.models import Count
+from django.db.models.functions import TruncDate
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def weekly_activity(request):
+    today = timezone.now()
+    week_ago = (today - timedelta(days=6)).date()
+    
+    # BURASI DÜZELDİ: created_at yerine application_date üzerinden gruplama yapıyoruz!
+    activities = JobApplication.objects.filter(
+        user=request.user,
+        application_date__gte=week_ago
+    ).annotate(
+        date=TruncDate('application_date')
+    ).values('date').annotate(
+        count=Count('id')
+    ).order_by('date')
+    
+    activity_dict = { (week_ago + timedelta(days=i)): 0 for i in range(7) }
+    
+    for act in activities:
+        if act['date'] in activity_dict:
+            activity_dict[act['date']] = act['count']
+    
+    chart_data = [ {"date": d.strftime('%Y-%m-%d'), "count": c} for d, c in activity_dict.items() ]
+    
+    return Response({
+        "data": chart_data,
+        "total_this_week": sum(activity_dict.values()),
+        "change_percentage": 12 
+    })
+# -------------------------------------------------------------
+# --- EKLENEN KISIM: 4. Görev - AI Resume Analyzer Sonucu ---
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def analyzer_last_result(request):
+    # İleride burası gerçek AI modelinden veya veritabanından çekilecek.
+    # Şimdilik Frontend'in (Sania'nın) hata vermeden çalışması ve 
+    # tasarımı göstermesi için beklediği formatı dönüyoruz.
+    data = {
+        "match_score": 66,
+        "missing_keywords": ["UX Research", "Figma", "User Journey"],
+        "last_scan": "2 days ago"
+    }
+    
+    # Eğer kullanıcının hiç analizi yoksa dönecek boş veri formatı:
+    # data = { "match_score": None, "missing_keywords": [], "last_scan": None }
+    
+    return Response(data)
+# -----------------------------------------------------------
+
+# --- EKLENEN KISIM: 5. Görev - Dashboard Hatırlatıcılar Listesi ---
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def dashboard_reminders(request):
+    # Tamamlanmamış ve tarihi en yakın olan ilk 4 hatırlatıcıyı getir
+    # Modeline göre is_completed veya done alanını kontrol et
+    reminders = Reminder.objects.filter(
+        user=request.user, 
+        is_completed=False 
+    ).order_by('due_date')[:4]
+    
+    serializer = ReminderSerializer(reminders, many=True)
+    return Response(serializer.data)
+# ---------------------------------------------------------------

@@ -39,9 +39,10 @@ export default function AddApplication() {
         company_name: form.company,
         job_title: form.role,
         status: form.status.toLowerCase(),
-        salary: form.salary,
+        salary: form.salary ? parseInt(form.salary, 10) : null,
         location: form.location,
-        applied_date: form.appliedDate || new Date().toISOString().split('T')[0],
+        // BURASI DÜZELDİ: applied_date yerine application_date yazıldı!
+        application_date: form.appliedDate || new Date().toISOString().split('T')[0],
         notes: form.notes
       });
       alert("Harika! Yeni iş başvurusu başarıyla veritabanına kaydedildi.");
@@ -87,15 +88,35 @@ export default function AddApplication() {
 
           <section className={`mt-10 w-[980px] rounded-[18px] border ${panel} px-10 py-9`}>
             <div className="grid grid-cols-2 gap-6">
+              {/* BURASI GÜNCELLENDİ: Özel Regex ile sadece 0-9 rakamları kabul edilir, oklar tamamen kalkar. */}
               {[
-                ['Company', 'company', 'Google'], ['Role', 'role', 'Frontend Developer'],
-                ['Salary', 'salary', '$120,000'], ['Location', 'location', 'Remote']
+                ['Company', 'company', 'Google'], 
+                ['Role', 'role', 'Frontend Developer'],
+                ['Salary', 'salary', '120000'], 
+                ['Location', 'location', 'Remote']
               ].map(([label, key, placeholder]) => (
                 <div key={label}>
                   <p className={`${softText} text-[12px] uppercase`}>{label}</p>
-                  <input value={form[key]} onChange={(e) => updateField(key, e.target.value)} placeholder={placeholder} className={`mt-2 h-[48px] w-full rounded-[14px] border px-4 outline-none ${isDark ? 'border-[#4A475B] bg-[#2B2A37] text-white placeholder:text-white/35' : 'border-[#D4D0DF] bg-[#F6F3FF] text-[#171421] placeholder:text-[#8A84A2]'}`} />
+                  <input 
+                    type="text" // 'number' yerine 'text' kullandık ki o çirkin oklar gitsin!
+                    value={form[key]} 
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      // Eğer değişen alan Maaş (salary) ise, rakam olmayan HER ŞEYİ sil! (e, -, +, . vb.)
+                      if (key === 'salary') {
+                        val = val.replace(/[^0-9]/g, '');
+                      }
+                      updateField(key, val);
+                    }} 
+                    placeholder={placeholder} 
+                    className={`mt-2 h-[48px] w-full rounded-[14px] border px-4 outline-none ${isDark ? 'border-[#4A475B] bg-[#2B2A37] text-white placeholder:text-white/35' : 'border-[#D4D0DF] bg-[#F6F3FF] text-[#171421] placeholder:text-[#8A84A2]'}`} 
+                  />
                 </div>
               ))}
+              
+              {/* Status ve Applied Date kısımları aşağıda aynı kalıyor... */}
+              
+              {/* ... (Status ve Applied Date kısımları aynı kalıyor) ... */}
               
               <div>
                 <p className={`${softText} text-[12px] uppercase`}>Status</p>

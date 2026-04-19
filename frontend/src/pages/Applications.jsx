@@ -19,25 +19,6 @@ const getAccentFromStatus = (status) => {
   return map[status] || 'blue';
 };
 
-const initialRows = [
-  { id: 1, company: 'Google', role: 'Software engineer', status: 'Applied', salary: '$117,500', applied: 'Mar 25, 2026', accent: 'blue', mode: 'Hybrid', icon: 'G', notes: '' },
-  { id: 2, company: 'Meta', role: 'Product designer', status: 'Applied', salary: '$124,000', applied: 'Mar 21, 2026', accent: 'blue', mode: 'Remote', icon: 'M', notes: '' },
-  { id: 3, company: 'Google', role: 'Software engineer', status: 'Interview', salary: '$117,500', applied: 'Mar 25, 2026', accent: 'yellow', mode: 'Hybrid', icon: 'G', notes: '' },
-  { id: 4, company: 'Microsoft', role: 'Frontend developer', status: 'Interview', salary: '$126,300', applied: 'Mar 20, 2026', accent: 'yellow', mode: 'Hybrid', icon: 'M', notes: '' },
-  { id: 5, company: 'Airbnb', role: 'UX researcher', status: 'Interview', salary: '$119,800', applied: 'Mar 16, 2026', accent: 'yellow', mode: 'Remote', icon: 'A', notes: '' },
-  { id: 6, company: 'Stripe', role: 'UX designer', status: 'Screening', salary: '$118,600', applied: 'Mar 18, 2026', accent: 'amber', mode: 'Hybrid', icon: 'S', notes: '' },
-  { id: 7, company: 'Notion', role: 'Visual designer', status: 'Offer', salary: '$122,400', applied: 'Mar 14, 2026', accent: 'green', mode: 'Remote', icon: 'N', notes: '' },
-  { id: 8, company: 'Shopify', role: 'Product designer', status: 'Offer', salary: '$127,900', applied: 'Mar 11, 2026', accent: 'green', mode: 'Remote', icon: 'S', notes: '' },
-  { id: 9, company: 'Dropbox', role: 'UI designer', status: 'Rejected', salary: '$104,200', applied: 'Mar 7, 2026', accent: 'red', mode: 'Hybrid', icon: 'D', notes: '' },
-];
-
-const savedRows = [
-  { id: 10, company: 'OpenAI', role: 'Product designer', status: 'Saved', salary: '$158,000', applied: 'Apr 09, 2026', accent: 'pink', mode: 'Hybrid', icon: 'O', notes: '' },
-  { id: 11, company: 'Netflix', role: 'Frontend engineer', status: 'Saved', salary: '$149,500', applied: 'Apr 12, 2026', accent: 'pink', mode: 'Remote', icon: 'N', notes: '' },
-  { id: 12, company: 'Adobe', role: 'UX researcher', status: 'Saved', salary: '$136,200', applied: 'Apr 14, 2026', accent: 'pink', mode: 'Hybrid', icon: 'A', notes: '' },
-  { id: 13, company: 'Duolingo', role: 'Interaction designer', status: 'Saved', salary: '$131,400', applied: 'Apr 18, 2026', accent: 'pink', mode: 'Remote', icon: 'D', notes: '' },
-];
-
 const statusClasses = {
   blue: 'border-[#3B82F6] bg-[#172843] text-[#3B82F6]',
   yellow: 'border-[#FACC15] bg-[#4A4216] text-[#FACC15]',
@@ -123,8 +104,7 @@ export default function Applications() {
   const { isDark } = useTheme();
   const { profile } = useProfile();
   
-  // Combine all rows into one source for easier filtering and counting
-  const [data, setData] = useState([...initialRows, ...savedRows]);
+  const [data, setData] = useState([]);
   const [activeTab, setActiveTab] = useState('All');
   const [editItem, setEditItem] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
@@ -147,24 +127,72 @@ export default function Applications() {
   
   const tableColumns = '1.5fr 1.7fr 1.1fr 0.95fr 1.15fr 0.9fr';
 
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        const response = await api.get('applications/');
+        const appList = Array.isArray(response.data) ? response.data : [];
+
+        const formattedData = appList.map(app => {
+          // %100 ÇÖKMEZ (BULLETPROOF) METİN DÖNÜŞÜMLERİ
+          const rawCompany = String(app.company_name || 'Unknown').trim();
+          const rawStatus = String(app.status || 'Applied').trim();
+
+          const iconChar = rawCompany ? String(rawCompany.charAt(0) || 'U').toUpperCase() : 'U';
+          const formattedStatus = rawStatus ? String(rawStatus.charAt(0) || 'A').toUpperCase() + rawStatus.slice(1).toLowerCase() : 'Applied';
+
+          // BURASI DÜZELDİ: app.application_date olarak okunuyor
+          let rawDate = app.application_date || app.created_at || '';
+          if (rawDate && typeof rawDate === 'string') {
+              rawDate = rawDate.split('T')[0];
+          } else {
+              rawDate = '';
+          }
+
+          let formattedDate = '-';
+          if (rawDate) {
+            const d = new Date(rawDate);
+            if (!isNaN(d)) {
+              formattedDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(d);
+            }
+          }
+          
+          return {
+            id: app.id,
+            company: rawCompany || 'Unknown',
+            role: String(app.job_title || 'Unknown'),
+            status: formattedStatus,
+            salary: String(app.salary || '-'),
+            mode: String(app.location || '-'),
+            applied: formattedDate,
+            rawDate: rawDate,
+            notes: String(app.notes || ''),
+            accent: getAccentFromStatus(formattedStatus),
+            icon: iconChar
+          };
+        });
+        
+        setData(formattedData);
+      } catch (error) {
+        console.error("Başvurular yüklenirken hata oluştu:", error);
+      }
+    };
+    fetchApplications();
+  }, []);
+
   const uniqueDates = useMemo(() => {
-    const dates = data.map(row => row.applied);
+    const dates = data.map(row => row.applied).filter(d => d !== '-');
     return ['All Dates', ...new Set(dates)];
   }, [data]);
   
   const visibleRows = useMemo(() => {
     let source = [...data];
-    
-    // Tab switching logic (High Priority)
     if (activeTab !== 'All') {
       source = source.filter((row) => row.status.toLowerCase() === activeTab.toLowerCase());
     }
-
-    // Secondary filters (Search and Sidebar)
     if (searchQuery) {
       source = source.filter(row => row.company.toLowerCase().includes(searchQuery.toLowerCase()));
     }
-
     if (filters.date !== 'All Dates') {
       source = source.filter(row => row.applied === filters.date);
     }
@@ -174,19 +202,55 @@ export default function Applications() {
     if (filters.role) {
       source = source.filter(row => row.role.toLowerCase().includes(filters.role.toLowerCase()));
     }
-
     return source;
   }, [activeTab, data, searchQuery, filters]);
 
-  const handleDelete = () => {
-    setData(data.filter(item => item.id !== deleteId));
-    setDeleteId(null);
+  const handleDelete = async () => {
+    try {
+      await api.delete(`applications/${deleteId}/`);
+      setData(data.filter(item => item.id !== deleteId));
+      setDeleteId(null);
+    } catch (error) {
+      console.error("Silme işlemi başarısız:", error);
+      alert("Başvuru silinirken bir hata oluştu.");
+    }
   };
 
-  const handleUpdate = (e) => {
+  const handleUpdate = async (e) => {
     e.preventDefault();
-    setData(data.map(item => item.id === editItem.id ? editItem : item));
-    setEditItem(null);
+    try {
+      const payload = {
+        company_name: editItem.company,
+        job_title: editItem.role,
+        status: editItem.status.toLowerCase(),
+        salary: editItem.salary && editItem.salary !== '-' ? parseInt(editItem.salary, 10) : null,
+        location: editItem.mode,
+        // BURASI DÜZELDİ: applied_date yerine application_date yazıldı!
+        application_date: editItem.rawDate || null,
+        notes: editItem.notes
+      };
+      // ... gerisi aynı ...
+      
+      await api.patch(`applications/${editItem.id}/`, payload);
+      
+      setData(data.map(item => {
+        if (item.id === editItem.id) {
+           const safeComp = String(editItem.company || 'Unknown').trim();
+           const safeIcon = safeComp ? String(safeComp.charAt(0) || 'U').toUpperCase() : 'U';
+           return {
+             ...editItem,
+             company: safeComp || 'Unknown',
+             accent: getAccentFromStatus(editItem.status),
+             icon: safeIcon
+           };
+        }
+        return item;
+      }));
+      setEditItem(null);
+    } catch(error) {
+      console.error("Güncelleme hatası:", error);
+      alert("Başvuru güncellenirken bir hata oluştu.");
+    }
   };
 
   const navItems = [
@@ -228,7 +292,18 @@ export default function Applications() {
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Salary</label>
-                <input className={`rounded-xl border p-4 outline-none ${inputBg}`} value={editItem.salary} onChange={(e) => setEditItem({...editItem, salary: e.target.value})} />
+                {/* BURASI GÜNCELLENDİ: type="text" ve Regex kontrolü */}
+                <input 
+                  type="text"
+                  className={`rounded-xl border p-4 outline-none ${inputBg}`} 
+                  value={editItem.salary !== '-' ? editItem.salary : ''} 
+                  onChange={(e) => {
+                    // Rakam olmayan tüm karakterleri anında yok et
+                    const onlyNumbers = e.target.value.replace(/[^0-9]/g, '');
+                    setEditItem({...editItem, salary: onlyNumbers});
+                  }} 
+                  placeholder="Örn: 120000"
+                />
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Location</label>
@@ -249,9 +324,14 @@ export default function Applications() {
               <div className="flex flex-col gap-2">
                 <label className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Applied Date</label>
                 <input 
+                  type="date"
                   className={`rounded-xl border p-4 outline-none ${inputBg}`} 
-                  value={editItem.applied} 
-                  onChange={(e) => setEditItem({...editItem, applied: e.target.value})}
+                  value={editItem.rawDate || ''} 
+                  onChange={(e) => {
+                    const newDate = e.target.value;
+                    const formatted = newDate ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(newDate)) : '-';
+                    setEditItem({...editItem, rawDate: newDate, applied: formatted});
+                  }}
                 />
               </div>
               <div className="col-span-2 flex flex-col gap-2">

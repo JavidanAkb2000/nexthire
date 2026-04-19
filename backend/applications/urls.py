@@ -4,7 +4,12 @@ from .views import (
     JobApplicationDetailView,
     ReminderListCreateView,      
     ReminderDetailView,
-    DashboardSummaryView         
+    DashboardSummaryView,
+    dashboard_stats,
+    application_pipeline,
+    weekly_activity,
+    analyzer_last_result,
+    dashboard_reminders        
 )
 
 urlpatterns = [
@@ -18,4 +23,14 @@ urlpatterns = [
 
     # Dashboard İstatistikleri
     path('dashboard-summary/', DashboardSummaryView.as_view(), name='dashboard-summary'),
+
+    path('dashboard/stats/', dashboard_stats, name='dashboard-stats'),
+
+    path('applications/pipeline/', application_pipeline, name='application-pipeline'),
+
+    path('dashboard/weekly-activity/', weekly_activity, name='weekly-activity'),
+
+    path('analyzer/last-result/', analyzer_last_result, name='analyzer-last-result'),
+
+    path('dashboard/reminders/', dashboard_reminders, name='dashboard-reminders'),
 ]

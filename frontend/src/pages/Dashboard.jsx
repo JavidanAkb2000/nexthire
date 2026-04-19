@@ -1,8 +1,9 @@
-import { useDeferredValue, useState, useMemo } from 'react'; 
+import { useDeferredValue, useState, useMemo , useEffect } from 'react'; 
 import { Link, useNavigate } from 'react-router-dom'; 
 import ThemeToggle from '../components/ThemeToggle'; 
 import { useTheme } from '../context/useTheme'; 
 import { useProfile } from '../context/useProfile'; 
+import api from '../api';
 
 const stats = [ 
   { label: 'Total applied', value: '18', delta: '+3 this week', tone: 'blue' }, 
@@ -11,50 +12,6 @@ const stats = [
   { label: 'Total rejected', value: '13', delta: '+4 this week', tone: 'red' }, 
 ]; 
 
-const pipeline = [ 
-  { 
-    title: 'Applied', 
-    tone: 'blue', 
-    cards: [ 
-      { company: 'Google', role: 'Product Designer', age: '2 days ago' }, 
-      { company: 'Spotify', role: 'Product Designer', age: '4 days ago' }, 
-      { company: 'Notion', role: 'Product Designer', age: '6 days ago' }, 
-    ], 
-  }, 
-  { 
-    title: 'Screening', 
-    tone: 'yellow', 
-    cards: [ 
-      { company: 'Airbnb', role: 'Product Designer', age: '2 days ago' }, 
-      { company: 'Canva', role: 'Product Designer', age: '5 days ago' }, 
-    ], 
-  }, 
-  { 
-    title: 'Interview', 
-    tone: 'amber', 
-    cards: [{ company: 'Figma', role: 'Product Designer', age: '2 days ago' }], 
-  }, 
-  { 
-    title: 'Offer', 
-    tone: 'green', 
-    cards: [ 
-      { company: 'Stripe', role: 'Product Designer', age: '1 day ago' }, 
-      { company: 'Shopify', role: 'Product Designer', age: '3 days ago' }, 
-    ], 
-  }, 
-  { 
-    title: 'Rejected', 
-    tone: 'red', 
-    cards: [{ company: 'Dropbox', role: 'Product Designer', age: '6 days ago' }], 
-  }, 
-]; 
-
-const reminders = [ 
-  { tone: 'red', title: 'Send resume', detail: 'Spotify · Due today' }, 
-  { tone: 'amber', title: 'Update CV', detail: 'Airbnb · Tomorrow' }, 
-  { tone: 'green', title: 'Write follow-up', detail: 'Figma · Friday' }, 
-  { tone: 'green', title: 'Prepare portfolio', detail: 'Shopify · Next week' }, 
-]; 
 
 const toneClasses = { 
   blue: 'border-l-[#3B82F6] border-l-4', 
@@ -141,6 +98,80 @@ export default function Dashboard() {
   const { isDark } = useTheme(); 
   const { profile } = useProfile(); 
   const navigate = useNavigate(); 
+
+  const [liveStats, setLiveStats] = useState(null);
+
+  // --- BURADA DEĞİŞTİRDİK: 4. Görev - AI Analyzer için state ---
+  const [analyzerData, setAnalyzerData] = useState({ match_score: null, missing_keywords: [], last_scan: null });
+
+  // --- EKLENEN KISIM: Pipeline için State ---
+  const [livePipeline, setLivePipeline] = useState([
+    { title: 'Applied', tone: 'blue', cards: [] },
+    { title: 'Screening', tone: 'yellow', cards: [] },
+    { title: 'Interview', tone: 'amber', cards: [] },
+    { title: 'Offer', tone: 'green', cards: [] },
+    { title: 'Rejected', tone: 'red', cards: [] },
+  ]);
+
+
+  const [weeklyData, setWeeklyData] = useState({ data: [], total_this_week: 0 });
+
+// --- BURADA DEĞİŞTİRDİK: 5. Görev - Hatırlatıcılar için state ---
+  const [liveReminders, setLiveReminders] = useState([]);
+
+ // --- GÜNCELLENEN KISIM: Her istek kendi koruma kalkanına (try/catch) alındı ---
+  useEffect(() => {
+    const fetchData = async () => {
+      // 1. İstatistikleri Çek
+      try {
+        const statsRes = await api.get('applications/dashboard/stats/');
+        setLiveStats(statsRes.data);
+      } catch (error) { console.error("Stats hatası:", error); }
+
+      // 2. Pipeline (Kanban) Verilerini Çek
+      try {
+        const pipeRes = await api.get('applications/applications/pipeline/');
+        const pData = pipeRes.data;
+        setLivePipeline([
+          { title: 'Applied', tone: 'blue', cards: pData.applied || [] },
+          { title: 'Screening', tone: 'yellow', cards: pData.screening || [] },
+          { title: 'Interview', tone: 'amber', cards: pData.interview || [] },
+          { title: 'Offer', tone: 'green', cards: pData.offer || [] },
+          { title: 'Rejected', tone: 'red', cards: pData.rejected || [] },
+        ]);
+      } catch (error) { console.error("Pipeline hatası:", error); }
+
+      // 3. Haftalık Aktivite Verisini Çek
+      try {
+        const weeklyRes = await api.get('applications/dashboard/weekly-activity/');
+        setWeeklyData(weeklyRes.data);
+      } catch (error) { console.error("Weekly hatası:", error); }
+
+      // 4. AI Analyzer Verisini Çek
+      try {
+        const analyzerRes = await api.get('applications/analyzer/last-result/');
+        setAnalyzerData(analyzerRes.data);
+      } catch (error) { console.error("Analyzer hatası:", error); }
+
+      // 5. Hatırlatıcıları Çek
+      try {
+        const remindersRes = await api.get('applications/dashboard/reminders/');
+        setLiveReminders(remindersRes.data);
+      } catch (error) { console.error("Reminders hatası:", error); }
+    };
+
+    fetchData();
+  }, []);
+  // Not: Eğer aşağılarda eski bir "fetchStats" fonksiyonu varsa onu silebilirsin, artık her şey yukarıda.
+
+  // Ekranda gösterilecek dinamik veriler (Sania'nın formatında ama API'ye bağlı)
+  const displayStats = [ 
+    { label: 'Total applied', value: liveStats?.total_applied || '0', delta: `+${liveStats?.applied_this_week || 0} this week`, tone: 'blue' }, 
+    { label: 'Total offered', value: liveStats?.total_offered || '0', delta: `+${liveStats?.offered_this_week || 0} this week`, tone: 'green' }, 
+    { label: 'Total interviewed', value: liveStats?.total_interviewed || '0', delta: `+${liveStats?.interviewed_this_week || 0} this week`, tone: 'yellow' }, 
+    { label: 'Total rejected', value: liveStats?.total_rejected || '0', delta: `+${liveStats?.rejected_this_week || 0} this week`, tone: 'red' }, 
+  ];
+
   const [search, setSearch] = useState(''); 
   const [showFilterMenu, setShowFilterMenu] = useState(false); 
   const [filters, setFilters] = useState({ date: '', status: '', role: '' }); 
@@ -148,17 +179,21 @@ export default function Dashboard() {
 
   const deferredSearch = useDeferredValue(search); 
 
+  // --- GÜNCELLENEN KISIM: livePipeline bağımlılığı eklendi ---
   const filteredPipeline = useMemo(() => { 
-    return pipeline.map(column => { 
+    return livePipeline.map(column => { 
+      // Eğer bir statü filtresi seçilmişse, diğer kolonları boşalt
       if (filters.status && column.title.toLowerCase() !== filters.status.toLowerCase()) { 
         return { ...column, cards: [] }; 
       } 
 
       const filteredCards = column.cards.filter(card => { 
+        // Arama kutusuna yazılan kelime kontrolü
         const matchesSearch =  
           card.company.toLowerCase().includes(deferredSearch.toLowerCase()) ||  
           card.role.toLowerCase().includes(deferredSearch.toLowerCase()); 
           
+        // Tarih ve Rol filtreleri kontrolü
         const matchesDate = filters.date === '' || card.age === filters.date; 
         const matchesRole = filters.role === '' || card.role.toLowerCase().includes(filters.role.toLowerCase()); 
         
@@ -167,7 +202,8 @@ export default function Dashboard() {
 
       return { ...column, cards: filteredCards }; 
     }); 
-  }, [deferredSearch, filters]); 
+    // BURASI ÇOK KRİTİK: dependency array'e "livePipeline" eklendi!
+  }, [deferredSearch, filters, livePipeline]);
 
   const shell = isDark ? 'bg-[#111119] text-white' : 'bg-[#F6F3FF] text-[#171421]'; 
   const sidebar = isDark ? 'bg-[#1B1B25] border-[#4A475B]' : 'bg-[#FBFAFE] border-[#D4D0DF]'; 
@@ -175,7 +211,30 @@ export default function Dashboard() {
   const softText = isDark ? 'text-white/55' : 'text-[#6F688A]'; 
   const brightText = isDark ? 'text-white' : 'text-[#171421]'; 
 
-  const uniqueDates = Array.from(new Set(pipeline.flatMap(col => col.cards.map(c => c.age)))); 
+  const uniqueDates = Array.from(new Set(livePipeline.flatMap(col => col.cards.map(c => c.age)))); 
+
+
+  const today = new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date());
+
+  // --- EKLENEN KISIM: Weekly Activity için Dinamik Tarih Aralığı ---
+  const todayObj = new Date();
+  const lastWeekObj = new Date();
+  lastWeekObj.setDate(todayObj.getDate() - 6);
+
+  const formatRangeDate = (date) => {
+    const d = String(date.getDate()).padStart(2, '0');
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const y = date.getFullYear();
+    return `${d}.${m}.${y}`;
+  };
+  const dateRangeStr = `${formatRangeDate(lastWeekObj)}-${formatRangeDate(todayObj)}`;
+  // ---------------------------------------------------------------
+
+  const firstName = profile?.fullName ? profile.fullName.split(' ')[0] : 'User';
 
   return ( 
     <div className={`min-h-screen font-sans ${shell}`}> 
@@ -294,7 +353,7 @@ export default function Dashboard() {
                   verticalAlign: 'middle', 
                 }} 
               > 
-                Hello, Alex! 
+                Hello, {firstName}!
               </h2> 
               <p 
                 className={`mt-2 ${softText}`} 
@@ -307,7 +366,7 @@ export default function Dashboard() {
                   verticalAlign: 'middle', 
                 }} 
               > 
-                Saturday, March 28 
+                {today} 
               </p> 
             </div> 
 
@@ -457,7 +516,7 @@ export default function Dashboard() {
 
           {/* ── Stats row ── each card grows equally */}
           <section className="mt-8 flex gap-5"> 
-            {stats.map((stat) => ( 
+            {displayStats.map((stat) => ( 
               <div 
                 key={stat.label} 
                 className={`flex-1 min-w-0 rounded-xl border px-6 py-4 text-left shadow-sm ${panel} ${toneClasses[stat.tone]}`} 
@@ -546,79 +605,123 @@ export default function Dashboard() {
                   <h4 className="text-[17px] font-semibold leading-tight">Weekly Activity</h4> 
                   <p className={`${softText} mt-2 text-[11px] leading-[15px]`}>Application sent per day</p> 
                 </div> 
-                <span className="shrink-0 rounded-md bg-[#332E59] px-3 py-1 text-[9px] text-white/80 whitespace-nowrap">24.03.2026-31.03.2026</span> 
+                <span className="shrink-0 rounded-md bg-[#332E59] px-3 py-1 text-[9px] text-white/80 whitespace-nowrap">
+                  {dateRangeStr}
+                </span> 
               </div> 
-              <div className="mt-6 flex h-[172px] items-end justify-between gap-1"> 
-                {[5, 9, 6, 4, 3, 2, 7].map((value, index) => ( 
+              
+              <div className="mt-6 flex h-[172px] items-end justify-between gap-1.5"> 
+                {(weeklyData.data.length > 0 ? weeklyData.data : Array(7).fill({count: 0})).map((item, index) => ( 
                   <div key={index} className="flex flex-1 flex-col items-center gap-2"> 
-                    <span className="text-[11px] font-medium">{value}</span> 
-                    <div className="flex h-[148px] w-full items-end rounded-full bg-[#322A57] p-1"> 
+                    <span className="text-[11px] font-medium">{item.count}</span> 
+                    
+                    <div className="flex h-[148px] w-full items-end rounded-full bg-[#322A57] p-[4px]"> 
                       <div 
-                        className="w-full rounded-full bg-gradient-to-t from-[#7C4DFF] to-[#5D4AB5]" 
-                        style={{ height: `${28 + value * 10}px` }} 
+                        className={`w-full bg-gradient-to-t from-[#7C4DFF] to-[#5D4AB5] transition-all duration-500 rounded-b-full ${
+                          item.count > 0 ? 'rounded-t-full' : 'rounded-t-[6px]'
+                        }`}
+                        style={{ height: `${Math.min(140, 24 + (item.count || 0) * 14)}px` }} 
                       /> 
                     </div> 
                   </div> 
                 ))} 
               </div> 
-              <p className="mt-5 text-[12px] leading-[16px] text-violet-400">36 applications this week</p> 
-              <p className={`${softText} mt-2 text-[11px] leading-[15px]`}>↗ 12% compared to last week</p> 
-            </div> 
+              <p className="mt-5 text-[12px] leading-[16px] text-violet-400">{weeklyData.total_this_week} applications this week</p> 
+              <p className={`${softText} mt-2 text-[11px] leading-[15px]`}>↗ {weeklyData.change_percentage}% compared to last week</p> 
+            </div>
+            {/* ------------------------------------------------------------------------------------- */}
 
             {/* AI Resume Analyzer */}
-            <div className={`w-full rounded-xl border ${panel} px-5 py-5`}> 
-              <h4 className="text-[17px] font-semibold leading-tight">AI Resume Analyzer</h4> 
-              <p className={`${softText} mt-2 text-[11px] leading-[15px]`}>Last Scan: 2 days ago</p> 
-              <div className="mt-6 flex items-center justify-between gap-4"> 
-                <div className="relative flex h-[122px] w-[122px] shrink-0 items-center justify-center rounded-full border-[12px] border-[#7C4DFF] border-r-white/50 border-t-white/60"> 
-                  <div className="text-center"> 
-                    <p className="text-[18px] font-semibold leading-none">66%</p> 
-                    <p className={`${softText} mt-1 text-[11px]`}>Match</p> 
-                  </div> 
-                </div> 
-                <div className="min-w-0 flex-1"> 
-                  <div className="flex items-center gap-2 text-[12px] font-medium leading-[16px]"> 
-                    <span className="text-[#FF5252]">⊗</span> 
-                    <span>Missing Keywords</span> 
-                  </div> 
-                  <div className="mt-4 flex flex-wrap gap-2"> 
-                    {['UX Research', 'Figma', 'User Journey'].map((tag) => ( 
-                      <span key={tag} className="rounded-md bg-[#332E59] px-2.5 py-2 text-[10px] leading-none text-white/85">{tag}</span> 
-                    ))} 
-                  </div> 
-                </div> 
-              </div> 
-              <Link to="/analyzer">
-                <button className="mt-12 flex w-full items-center justify-center gap-2 rounded-[16px] border border-violet-400/80 bg-gradient-to-r from-[#2A2340] via-[#31264A] to-[#261F3C] px-4 py-3.5 text-[14px] font-semibold text-violet-300 shadow-[0_12px_30px_rgba(124,77,255,0.14)] transition duration-200 hover:-translate-y-0.5 hover:border-[#d9cff9] hover:bg-[#bfb1ea] hover:bg-none hover:text-[#2a2144] hover:shadow-[0_0_20px_rgba(124,77,255,0.4)] active:scale-[0.985]"> 
-                  <span>Analyze New Resume</span> 
-                  <span className="text-[16px] leading-none">↗</span> 
-                </button> 
+            {/* AI Resume Analyzer */}
+            <div className={`w-full rounded-xl border ${panel} px-5 py-5 flex flex-col`}>
+              <h4 className="text-[17px] font-semibold leading-tight">AI Resume Analyzer</h4>
+              
+              <p className={`${softText} mt-2 text-[11px] leading-[15px]`}>
+                {analyzerData.last_scan ? `Last Scan: ${analyzerData.last_scan}` : 'No scan yet'}
+              </p>
+
+              {analyzerData.match_score !== null ? (
+                <div className="mt-6 flex items-center justify-between gap-4">
+                  <div className="relative flex h-[122px] w-[122px] shrink-0 items-center justify-center rounded-full border-[12px] border-[#7C4DFF] border-r-white/50 border-t-white/60">
+                    <div className="text-center">
+                      <p className="text-[18px] font-semibold leading-none">{analyzerData.match_score}%</p>
+                      <p className={`${softText} mt-1 text-[11px]`}>Match</p>
+                    </div>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 text-[12px] font-medium leading-[16px]">
+                      <span className="text-[#FF5252]">⊗</span><span>Missing Keywords</span>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {analyzerData.missing_keywords.map((tag) => (
+                        <span key={tag} className="rounded-md bg-[#332E59] px-2.5 py-2 text-[10px] leading-none text-white/85">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-6 flex flex-1 items-center justify-center">
+                  <p className={`${softText} text-[12px]`}>Upload a resume to see your match score.</p>
+                </div>
+              )}
+
+              {/* BURADA DEĞİŞTİRDİK: <button> etiketi <Link> ile değiştirildi ve to="/analyzer" eklendi. */}
+              <Link to="/analyzer" className="mt-auto pt-6 block">
+                <div className="flex w-full items-center justify-center gap-2 rounded-[16px] border border-violet-400/80 bg-gradient-to-r from-[#2A2340] via-[#31264A] to-[#261F3C] px-4 py-3.5 text-[14px] font-semibold text-violet-300 shadow-[0_12px_30px_rgba(124,77,255,0.14)] transition duration-200 hover:brightness-110">
+                  <span>Analyze New Resume</span><span className="text-[16px] leading-none">↗</span>
+                </div>
               </Link>
-            </div> 
+            </div>
+            {/* ------------------------------------------------------------------------- */}
 
             {/* Reminders */}
-            <div className={`w-full rounded-xl border ${panel} px-5 py-5`}> 
-              <div className="flex items-center justify-between gap-4"> 
-                <Link to="/reminders" className="text-[17px] font-semibold leading-tight">Reminders</Link> 
-                <Link to="/reminders" className="shrink-0 rounded-xl border border-violet-500 px-3 py-2 text-[12px] font-medium text-violet-500 transition hover:bg-violet-500/10">Add ⊕</Link> 
-              </div> 
-              <div className="mt-4 space-y-2.5"> 
-                {reminders.map((reminder, index) => ( 
-                  <Link key={index} to="/reminders" className={`flex h-[58px] w-full rounded-[10px] border-[1.2px] ${panel} px-3 py-2.5 transition hover:border-violet-400/50 items-center`}> 
-                    <div className="flex w-full items-center justify-between gap-[10px]"> 
-                      <div className="flex min-w-0 items-start gap-3"> 
-                        <span className={`shrink-0 ${reminder.tone === 'red' ? 'text-[#FF5252]' : reminder.tone === 'amber' ? 'text-[#F59E0B]' : 'text-[#22C55E]'}`}>●</span> 
-                        <div className="min-w-0"> 
-                          <p className="truncate text-[11px] font-medium leading-[14px]">{reminder.title}</p> 
-                          <p className={`${softText} mt-1 truncate text-[10px] leading-[12px]`}>{reminder.detail}</p> 
-                        </div> 
-                      </div> 
-                      <span className={`${softText} shrink-0 text-[13px]`}>→</span> 
-                    </div> 
-                  </Link> 
-                ))} 
-              </div> 
-            </div> 
+            {/* --- GÜNCELLENEN KISIM: 5. Görev - Hatırlatıcılar Kartı (Genişlik ve Hiza Kusursuzlaştırıldı) --- */}
+            {/* 1. DÜZELTME: max-w-[326px] sınırı tamamen SİLİNDİ, sadece w-full bırakıldı. Böylece kart sağdaki boşluğu tam dolduracak. */}
+            <div className={`h-[348px] w-full rounded-xl border ${panel} px-5 py-5 flex flex-col`}>
+              <div className="flex items-center justify-between gap-4">
+                <Link to="/reminders" className="text-[17px] font-semibold leading-tight hover:text-violet-400 transition">
+                  Reminders
+                </Link>
+                <Link to="/reminders" className="shrink-0 rounded-xl border border-violet-500 px-3 py-2 text-[12px] font-medium text-violet-500 transition hover:bg-violet-500/10">
+                  Add ⊕
+                </Link>
+              </div>
+              
+              {liveReminders.length > 0 ? (
+                <div className="mt-4 space-y-2.5 overflow-y-auto pr-1">
+                  {liveReminders.map((reminder, index) => (
+                    <Link 
+                      key={reminder.id || index} 
+                      to="/reminders" 
+                      className={`flex h-[58px] w-full shrink-0 rounded-[10px] border-[1.2px] ${panel} px-3 py-2.5 transition hover:border-violet-400/50 items-center`}
+                    >
+                      <div className="flex w-full items-center justify-between gap-[10px]">
+                        <div className="flex min-w-0 items-start gap-3">
+                          <span className="shrink-0 text-[#F59E0B]">●</span>
+                          <div className="min-w-0">
+                            <p className="truncate text-[11px] font-medium leading-[14px]">
+                              {reminder.message}
+                            </p>
+                            <p className={`${softText} mt-1 truncate text-[10px] leading-[12px]`}>
+                              {reminder.company} · {reminder.due_date}
+                            </p>
+                          </div>
+                        </div>
+                        <span className={`${softText} shrink-0 text-[13px]`}>→</span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                // 2. DÜZELTME: pb-[72px] eklendi. Yandaki AI kartının en altındaki butonun yüksekliği kadar alttan sahte bir boşluk bırakarak yazıyı tam olarak "Upload a resume..." ile aynı hizaya (yukarı) ittik.
+                <div className="flex flex-1 items-center justify-center text-center pb-[72px]">
+                  <p className={`${softText} text-[12px]`}>No upcoming reminders.</p>
+                </div>
+              )}
+            </div>
+            {/* ---------------------------------------------------------------------------------------------------------- */}
 
           </section> 
         </main> 
