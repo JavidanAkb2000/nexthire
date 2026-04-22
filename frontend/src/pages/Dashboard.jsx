@@ -501,15 +501,17 @@ export default function Dashboard() {
                     
                     <div className="flex h-[148px] w-full items-end rounded-full bg-[#322A57] p-[4px]"> 
                       <div 
-                        className={`w-full bg-gradient-to-t from-[#7C4DFF] to-[#5D4AB5] transition-all duration-500 rounded-b-full ${
-                          item.count > 0 ? 'rounded-t-full' : 'rounded-t-[6px]'
+                        className={`w-full transition-all duration-500 rounded-b-full ${
+                          item.count > 0 
+                            ? 'bg-gradient-to-t from-[#7C4DFF] to-[#5D4AB5] rounded-t-full' 
+                            : 'opacity-0' 
                         }`}
-                        style={{ height: `${Math.min(140, 24 + (item.count || 0) * 14)}px` }} 
+                        style={{ height: `${Math.min(140, 60 + (item.count || 0) * 10)}px` }} 
                       /> 
                     </div> 
                   </div> 
                 ))} 
-              </div> 
+              </div>
               <p className="mt-5 text-[12px] leading-[16px] text-violet-400">{weeklyData.total_this_week} applications this week</p> 
               <p className={`${softText} mt-2 text-[11px] leading-[15px]`}>↗ {weeklyData.change_percentage}% compared to last week</p> 
             </div>

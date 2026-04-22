@@ -13,6 +13,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Reminder
 from .serializers import ReminderSerializer
+from django.db.models import Avg, Count
+from django.utils import timezone
+from datetime import timedelta
 
 class JobApplicationListCreateView(generics.ListCreateAPIView):
     serializer_class = JobApplicationSerializer
@@ -174,24 +177,41 @@ def application_pipeline(request):
 from django.db.models import Count
 from django.db.models.functions import TruncDate
 
+# --- GÜNCELLENEN KISIM: Gerçek Yüzde Hesaplaması ---
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def weekly_activity(request):
-    today = timezone.now()
-    week_ago = (today - timedelta(days=6)).date()
+    today = timezone.now().date()
+    # Bu haftanın başı (Son 7 gün)
+    this_week_start = today - timedelta(days=6)
+    # Geçen haftanın başı (7-14 gün arası)
+    last_week_start = today - timedelta(days=13)
     
-    # BURASI DÜZELDİ: created_at yerine application_date üzerinden gruplama yapıyoruz!
+    # 1. Bu haftaki toplam başvuru sayısı
+    this_week_count = JobApplication.objects.filter(
+        user=request.user, application_date__gte=this_week_start
+    ).count()
+
+    # 2. Geçen haftaki toplam başvuru sayısı
+    last_week_count = JobApplication.objects.filter(
+        user=request.user, 
+        application_date__gte=last_week_start,
+        application_date__lt=this_week_start
+    ).count()
+
+    # 3. Yüzdesel Değişim Hesaplama
+    if last_week_count == 0:
+        change_percentage = 100 if this_week_count > 0 else 0
+    else:
+        # Formül: ((Yeni - Eski) / Eski) * 100
+        change_percentage = int(((this_week_count - last_week_count) / last_week_count) * 100)
+
+    # Günlük verileri çekme (Grafik için)
     activities = JobApplication.objects.filter(
-        user=request.user,
-        application_date__gte=week_ago
-    ).annotate(
-        date=TruncDate('application_date')
-    ).values('date').annotate(
-        count=Count('id')
-    ).order_by('date')
+        user=request.user, application_date__gte=this_week_start
+    ).annotate(date=TruncDate('application_date')).values('date').annotate(count=Count('id'))
     
-    activity_dict = { (week_ago + timedelta(days=i)): 0 for i in range(7) }
-    
+    activity_dict = { (this_week_start + timedelta(days=i)): 0 for i in range(7) }
     for act in activities:
         if act['date'] in activity_dict:
             activity_dict[act['date']] = act['count']
@@ -200,8 +220,8 @@ def weekly_activity(request):
     
     return Response({
         "data": chart_data,
-        "total_this_week": sum(activity_dict.values()),
-        "change_percentage": 12 
+        "total_this_week": this_week_count,
+        "change_percentage": change_percentage # ARTIK DİNAMİK!
     })
 # -------------------------------------------------------------
 # --- EKLENEN KISIM: 4. Görev - AI Resume Analyzer Sonucu ---
@@ -273,3 +293,69 @@ def reminder_detail(request, pk):
     elif request.method == 'DELETE':
         reminder.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+
+    # --- EKLENEN KISIM: Performans Sayfası İstatistikleri ---
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def performance_stats(request):
+    user = request.user
+    now = timezone.now()
+    
+    # Tarihleri ayarla (Bu hafta ve Geçen hafta)
+    start_of_this_week = now - timedelta(days=now.weekday())
+    start_of_last_week = start_of_this_week - timedelta(days=7)
+
+    # Kullanıcının tüm başvuruları
+    apps = JobApplication.objects.filter(user=user)
+
+    # 1. TOTAL APPLICATIONS (Toplam Başvuru ve Geçen Haftaya Göre Fark)
+    total_apps = apps.count()
+    apps_this_week = apps.filter(application_date__gte=start_of_this_week).count()
+    apps_last_week = apps.filter(application_date__gte=start_of_last_week, application_date__lt=start_of_this_week).count()
+    
+    # 2. OFFER RATE (Teklif Alma Oranı)
+    total_offers = apps.filter(status='offer').count()
+    offer_rate = int((total_offers / total_apps * 100)) if total_apps > 0 else 0
+
+    # 3. AVERAGE SALARY (Ortalama Maaş)
+    avg_salary_agg = apps.aggregate(Avg('salary'))['salary__avg']
+    avg_salary = int(avg_salary_agg) if avg_salary_agg else 0
+
+    # 4. RESPONSE RATE (Geri Dönüş Oranı - 'Applied' olmayanlar)
+    no_response_count = apps.filter(status='applied').count()
+    responded_count = total_apps - no_response_count
+    response_rate = int((responded_count / total_apps * 100)) if total_apps > 0 else 0
+
+    # 5. STATUS BREAKDOWN (Durum Dağılımı)
+    status_breakdown = {
+        'screening': apps.filter(status='screening').count(),
+        'interview': apps.filter(status='interview').count(),
+        'rejected': apps.filter(status='rejected').count(),
+        'offers': total_offers,
+        'no_response': no_response_count,
+    }
+
+    # 6. OVERVIEW STATS (Genel Bakış Kartları)
+    highest_offer_app = apps.filter(status='offer').order_by('-salary').first()
+    highest_offer = {
+        'amount': highest_offer_app.salary if highest_offer_app and highest_offer_app.salary else 0,
+        'company': highest_offer_app.company_name if highest_offer_app else 'N/A'
+    }
+
+    top_role = apps.values('job_title').annotate(count=Count('job_title')).order_by('-count').first()
+    top_role_name = top_role['job_title'] if top_role else 'N/A'
+
+    return Response({
+        'total_applications': total_apps,
+        'apps_this_week': apps_this_week,
+        'apps_last_week': apps_last_week,
+        'offer_rate': offer_rate,
+        'average_salary': avg_salary,
+        'response_rate': response_rate,
+        'status_breakdown': status_breakdown,
+        'highest_offer': highest_offer,
+        'top_role': top_role_name
+    })
+# -------------------------------------------------------------
