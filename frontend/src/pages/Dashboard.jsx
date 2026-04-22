@@ -12,7 +12,6 @@ const stats = [
   { label: 'Total rejected', value: '13', delta: '+4 this week', tone: 'red' }, 
 ]; 
 
-
 const toneClasses = { 
   blue: 'border-l-[#3B82F6] border-l-4', 
   green: 'border-l-[#22C55E] border-l-4', 
@@ -100,11 +99,7 @@ export default function Dashboard() {
   const navigate = useNavigate(); 
 
   const [liveStats, setLiveStats] = useState(null);
-
-  // --- BURADA DEĞİŞTİRDİK: 4. Görev - AI Analyzer için state ---
   const [analyzerData, setAnalyzerData] = useState({ match_score: null, missing_keywords: [], last_scan: null });
-
-  // --- EKLENEN KISIM: Pipeline için State ---
   const [livePipeline, setLivePipeline] = useState([
     { title: 'Applied', tone: 'blue', cards: [] },
     { title: 'Screening', tone: 'yellow', cards: [] },
@@ -113,22 +108,16 @@ export default function Dashboard() {
     { title: 'Rejected', tone: 'red', cards: [] },
   ]);
 
-
   const [weeklyData, setWeeklyData] = useState({ data: [], total_this_week: 0 });
-
-// --- BURADA DEĞİŞTİRDİK: 5. Görev - Hatırlatıcılar için state ---
   const [liveReminders, setLiveReminders] = useState([]);
 
- // --- GÜNCELLENEN KISIM: Her istek kendi koruma kalkanına (try/catch) alındı ---
   useEffect(() => {
     const fetchData = async () => {
-      // 1. İstatistikleri Çek
       try {
         const statsRes = await api.get('applications/dashboard/stats/');
         setLiveStats(statsRes.data);
       } catch (error) { console.error("Stats hatası:", error); }
 
-      // 2. Pipeline (Kanban) Verilerini Çek
       try {
         const pipeRes = await api.get('applications/applications/pipeline/');
         const pData = pipeRes.data;
@@ -141,30 +130,25 @@ export default function Dashboard() {
         ]);
       } catch (error) { console.error("Pipeline hatası:", error); }
 
-      // 3. Haftalık Aktivite Verisini Çek
       try {
         const weeklyRes = await api.get('applications/dashboard/weekly-activity/');
         setWeeklyData(weeklyRes.data);
       } catch (error) { console.error("Weekly hatası:", error); }
 
-      // 4. AI Analyzer Verisini Çek
       try {
         const analyzerRes = await api.get('applications/analyzer/last-result/');
         setAnalyzerData(analyzerRes.data);
       } catch (error) { console.error("Analyzer hatası:", error); }
 
-      // 5. Hatırlatıcıları Çek
       try {
-        const remindersRes = await api.get('applications/dashboard/reminders/');
+        const remindersRes = await api.get('applications/api-reminders/');
         setLiveReminders(remindersRes.data);
       } catch (error) { console.error("Reminders hatası:", error); }
     };
 
     fetchData();
   }, []);
-  // Not: Eğer aşağılarda eski bir "fetchStats" fonksiyonu varsa onu silebilirsin, artık her şey yukarıda.
 
-  // Ekranda gösterilecek dinamik veriler (Sania'nın formatında ama API'ye bağlı)
   const displayStats = [ 
     { label: 'Total applied', value: liveStats?.total_applied || '0', delta: `+${liveStats?.applied_this_week || 0} this week`, tone: 'blue' }, 
     { label: 'Total offered', value: liveStats?.total_offered || '0', delta: `+${liveStats?.offered_this_week || 0} this week`, tone: 'green' }, 
@@ -179,21 +163,17 @@ export default function Dashboard() {
 
   const deferredSearch = useDeferredValue(search); 
 
-  // --- GÜNCELLENEN KISIM: livePipeline bağımlılığı eklendi ---
   const filteredPipeline = useMemo(() => { 
     return livePipeline.map(column => { 
-      // Eğer bir statü filtresi seçilmişse, diğer kolonları boşalt
       if (filters.status && column.title.toLowerCase() !== filters.status.toLowerCase()) { 
         return { ...column, cards: [] }; 
       } 
 
       const filteredCards = column.cards.filter(card => { 
-        // Arama kutusuna yazılan kelime kontrolü
         const matchesSearch =  
           card.company.toLowerCase().includes(deferredSearch.toLowerCase()) ||  
           card.role.toLowerCase().includes(deferredSearch.toLowerCase()); 
           
-        // Tarih ve Rol filtreleri kontrolü
         const matchesDate = filters.date === '' || card.age === filters.date; 
         const matchesRole = filters.role === '' || card.role.toLowerCase().includes(filters.role.toLowerCase()); 
         
@@ -202,7 +182,6 @@ export default function Dashboard() {
 
       return { ...column, cards: filteredCards }; 
     }); 
-    // BURASI ÇOK KRİTİK: dependency array'e "livePipeline" eklendi!
   }, [deferredSearch, filters, livePipeline]);
 
   const shell = isDark ? 'bg-[#111119] text-white' : 'bg-[#F6F3FF] text-[#171421]'; 
@@ -213,14 +192,12 @@ export default function Dashboard() {
 
   const uniqueDates = Array.from(new Set(livePipeline.flatMap(col => col.cards.map(c => c.age)))); 
 
-
   const today = new Intl.DateTimeFormat('en-US', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
   }).format(new Date());
 
-  // --- EKLENEN KISIM: Weekly Activity için Dinamik Tarih Aralığı ---
   const todayObj = new Date();
   const lastWeekObj = new Date();
   lastWeekObj.setDate(todayObj.getDate() - 6);
@@ -232,42 +209,24 @@ export default function Dashboard() {
     return `${d}.${m}.${y}`;
   };
   const dateRangeStr = `${formatRangeDate(lastWeekObj)}-${formatRangeDate(todayObj)}`;
-  // ---------------------------------------------------------------
 
   const firstName = profile?.fullName ? profile.fullName.split(' ')[0] : 'User';
 
   return ( 
     <div className={`min-h-screen font-sans ${shell}`}> 
       <div className="flex min-h-screen">
-
-        {/* ── Sidebar ── fixed width, never shrinks */}
         <aside className={`flex w-[272px] shrink-0 flex-col border-r ${sidebar}`}> 
           <div className="border-b border-inherit px-[18px] pb-7 pt-8"> 
             <h1 
               className={`${brightText} whitespace-nowrap`} 
-              style={{ 
-                fontFamily: 'Sitka, Georgia, serif', 
-                fontWeight: 700, 
-                fontSize: '34px', 
-                lineHeight: '34px', 
-                letterSpacing: '0%', 
-              }} 
+              style={{ fontFamily: 'Sitka, Georgia, serif', fontWeight: 700, fontSize: '34px', lineHeight: '34px', letterSpacing: '0%' }} 
             > 
               NextHire<span className="align-top text-[0.45em] text-violet-500">•</span> 
             </h1> 
           </div> 
 
           <div className="px-[18px] pt-6"> 
-            <p 
-              className={`${softText.toString()} uppercase`} 
-              style={{ 
-                fontFamily: 'Inter, system-ui, sans-serif', 
-                fontWeight: 500, 
-                fontSize: '9px', 
-                lineHeight: '16px', 
-                letterSpacing: '2%', 
-              }} 
-            > 
+            <p className={`${softText.toString()} uppercase`} style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 500, fontSize: '9px', lineHeight: '16px', letterSpacing: '2%' }}> 
               Main Menu 
             </p> 
           </div> 
@@ -281,27 +240,10 @@ export default function Dashboard() {
               { label: 'Reminders', icon: 'reminders', active: false, to: '/reminders' }, 
             ].map((item) => { 
               const content = ( 
-                <div 
-                  className={`flex min-h-[56px] items-center gap-4 rounded-[16px] border px-6 py-4 ${ 
-                    item.active 
-                      ? 'relative border-[#504B63] bg-[#2C2345] text-[#8B5CF6]' 
-                      : isDark 
-                      ? 'border-transparent text-white/90' 
-                      : 'border-transparent text-[#171421]' 
-                  }`} 
-                > 
+                <div className={`flex min-h-[56px] items-center gap-4 rounded-[16px] border px-6 py-4 ${item.active ? 'relative border-[#504B63] bg-[#2C2345] text-[#8B5CF6]' : isDark ? 'border-transparent text-white/90' : 'border-transparent text-[#171421]'}`}> 
                   {item.active && <span className="absolute left-[10px] top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-[#8B5CF6]" />} 
                   <SidebarIcon type={item.icon} active={Boolean(item.active)} /> 
-                  <span 
-                    className="whitespace-nowrap" 
-                    style={{ 
-                      fontFamily: 'Inter, system-ui, sans-serif', 
-                      fontWeight: item.active ? 500 : 400, 
-                      fontSize: '16px', 
-                      lineHeight: '100%', 
-                      letterSpacing: '0%', 
-                    }} 
-                  > 
+                  <span className="whitespace-nowrap" style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: item.active ? 500 : 400, fontSize: '16px', lineHeight: '100%', letterSpacing: '0%' }}> 
                     {item.label} 
                   </span> 
                 </div> 
@@ -322,61 +264,30 @@ export default function Dashboard() {
           <div className="mt-auto border-t border-inherit px-[18px] pb-7 pt-6"> 
             <Link to="/profile" className={`flex items-center gap-4 rounded-[18px] px-3 py-3 ${isDark ? 'bg-white/[0.03]' : 'bg-[#F1EFF7]'}`}> 
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#5B48D6] text-[18px] font-semibold text-white"> 
-                {profile.fullName 
-                  .split(' ') 
-                  .slice(0, 2) 
-                  .map((part) => part[0]) 
-                  .join('') 
-                  .toUpperCase()} 
+                {profile?.fullName ? profile.fullName.split(' ').slice(0, 2).map((part) => part[0]).join('').toUpperCase() : 'U'} 
               </div> 
               <div className="min-w-0"> 
-                <p className={`${brightText} truncate text-[15px] font-semibold leading-[18px]`}>{profile.fullName}</p> 
-                <p className={`${softText} mt-1 truncate text-[12px] font-medium uppercase tracking-[0.08em]`}>{profile.membership}</p> 
+                <p className={`${brightText} truncate text-[15px] font-semibold leading-[18px]`}>{profile?.fullName || 'User'}</p> 
+                <p className={`${softText} mt-1 truncate text-[12px] font-medium uppercase tracking-[0.08em]`}>{profile?.membership || 'Member'}</p> 
               </div> 
             </Link> 
           </div> 
         </aside> 
 
-        {/* ── Main content ── takes all remaining width */}
         <main className="flex min-w-0 flex-1 flex-col px-8 pb-10 pt-4 xl:px-11">
-
-          {/* Header */}
           <header className={`flex items-start justify-between border-b pb-4 ${isDark ? 'border-[#4A475B]' : 'border-[#D4D0DF]'}`}> 
             <div className="shrink-0"> 
-              <h2 
-                style={{ 
-                  fontFamily: 'Inter, system-ui, sans-serif', 
-                  fontWeight: 600, 
-                  fontSize: '24px', 
-                  lineHeight: '100%', 
-                  letterSpacing: '0%', 
-                  verticalAlign: 'middle', 
-                }} 
-              > 
+              <h2 style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 600, fontSize: '24px', lineHeight: '100%', letterSpacing: '0%', verticalAlign: 'middle' }}> 
                 Hello, {firstName}!
               </h2> 
-              <p 
-                className={`mt-2 ${softText}`} 
-                style={{ 
-                  fontFamily: 'Inter, system-ui, sans-serif', 
-                  fontWeight: 500, 
-                  fontSize: '10px', 
-                  lineHeight: '100%', 
-                  letterSpacing: '2%', 
-                  verticalAlign: 'middle', 
-                }} 
-              > 
+              <p className={`mt-2 ${softText}`} style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 500, fontSize: '10px', lineHeight: '100%', letterSpacing: '2%', verticalAlign: 'middle' }}> 
                 {today} 
               </p> 
             </div> 
 
             <div className="flex flex-1 items-center justify-center px-6"> 
               <div className="flex w-full max-w-md items-center gap-3"> 
-                <div 
-                  className={`flex h-10 flex-1 items-center gap-3 rounded-xl border px-4 ${ 
-                    isDark ? 'border-white/12 bg-[#2B2A37]' : 'border-[#DCCFFF] bg-white' 
-                  }`} 
-                > 
+                <div className={`flex h-10 flex-1 items-center gap-3 rounded-xl border px-4 ${isDark ? 'border-white/12 bg-[#2B2A37]' : 'border-[#DCCFFF] bg-white'}`}> 
                   <svg className={softText} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"> 
                     <circle cx="11" cy="11" r="7" /> 
                     <path d="M20 20l-3.5-3.5" /> 
@@ -392,16 +303,9 @@ export default function Dashboard() {
                 <div className="relative"> 
                   <button  
                     onClick={() => setShowFilterMenu(!showFilterMenu)} 
-                    className={`group flex h-10 w-10 items-center justify-center rounded-xl border transition-all duration-200 ${ 
-                      isDark  
-                        ? 'border-white/12 bg-[#2B2A37] hover:border-violet-500 hover:bg-violet-500/10'  
-                        : 'border-[#DCCFFF] bg-white hover:border-violet-500 hover:bg-violet-50' 
-                    }`} 
+                    className={`group flex h-10 w-10 items-center justify-center rounded-xl border transition-all duration-200 ${isDark ? 'border-white/12 bg-[#2B2A37] hover:border-violet-500 hover:bg-violet-500/10' : 'border-[#DCCFFF] bg-white hover:border-violet-500 hover:bg-violet-50'}`} 
                   > 
-                    <svg  
-                      className={`${softText} group-hover:text-violet-500 transition-colors`}  
-                      width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
-                    > 
+                    <svg className={`${softText} group-hover:text-violet-500 transition-colors`} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"> 
                       <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /> 
                     </svg> 
                   </button> 
@@ -409,7 +313,6 @@ export default function Dashboard() {
                   {showFilterMenu && ( 
                     <div className={`absolute right-0 top-12 z-50 w-64 rounded-xl border p-4 shadow-2xl ${panel}`}> 
                       <div className="space-y-4"> 
-                        {/* Date Filter */}
                         <div> 
                           <label className={`block text-[10px] font-bold uppercase tracking-wider ${softText} mb-1.5`}>Date Applied</label> 
                           <div className="relative"> 
@@ -444,7 +347,6 @@ export default function Dashboard() {
                           </div> 
                         </div> 
 
-                        {/* Status Filter */}
                         <div> 
                           <label className={`block text-[10px] font-bold uppercase tracking-wider ${softText} mb-1.5`}>Status</label> 
                           <div className="relative"> 
@@ -514,13 +416,9 @@ export default function Dashboard() {
             </div> 
           </header> 
 
-          {/* ── Stats row ── each card grows equally */}
           <section className="mt-8 flex gap-5"> 
             {displayStats.map((stat) => ( 
-              <div 
-                key={stat.label} 
-                className={`flex-1 min-w-0 rounded-xl border px-6 py-4 text-left shadow-sm ${panel} ${toneClasses[stat.tone]}`} 
-              > 
+              <div key={stat.label} className={`flex-1 min-w-0 rounded-xl border px-6 py-4 text-left shadow-sm ${panel} ${toneClasses[stat.tone]}`}> 
                 <div className="flex h-full flex-col justify-between gap-4"> 
                   <div className="min-w-0"> 
                     <p className={`${softText} text-[12px] font-medium leading-[16px] tracking-[0.01em]`}>{stat.label}</p> 
@@ -537,19 +435,10 @@ export default function Dashboard() {
             ))} 
           </section> 
 
-          {/* ── Application Pipeline ── */}
           <section className="mt-10"> 
             <div className="flex items-end justify-between"> 
               <div> 
-                <h3 
-                  style={{ 
-                    fontFamily: 'Inter, system-ui, sans-serif', 
-                    fontWeight: 500, 
-                    fontSize: '20px', 
-                    lineHeight: '100%', 
-                    letterSpacing: '0%', 
-                  }} 
-                > 
+                <h3 style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 500, fontSize: '20px', lineHeight: '100%', letterSpacing: '0%' }}> 
                   Application Pipeline 
                 </h3> 
                 <p className={`mt-3 ${softText}`} style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 400, fontSize: '14px', lineHeight: '100%', letterSpacing: '0%' }}> 
@@ -562,7 +451,6 @@ export default function Dashboard() {
               </Link> 
             </div> 
 
-            {/* Pipeline grid — 5 equal fluid columns */}
             <div className="mt-8 grid grid-cols-5 gap-4"> 
               {filteredPipeline.map((column) => ( 
                 <div key={column.title} className="min-w-0 w-full"> 
@@ -573,10 +461,7 @@ export default function Dashboard() {
 
                   <div className="mt-4 space-y-3"> 
                     {column.cards.map((card, index) => ( 
-                      <div 
-                        key={`${column.title}-${index}`} 
-                        className={`w-full rounded-xl border ${panel} px-3 py-3 transition-all hover:border-violet-400`} 
-                      > 
+                      <div key={`${column.title}-${index}`} className={`w-full rounded-xl border ${panel} px-3 py-3 transition-all hover:border-violet-400`}> 
                         <div className="flex flex-col justify-center gap-1"> 
                           <p className={`${brightText} truncate text-[13px] font-semibold leading-[18px]`}>{card.company}</p> 
                           <p className={`${softText} truncate text-[11px] leading-[14px]`}>{card.role}</p> 
@@ -595,10 +480,8 @@ export default function Dashboard() {
             </div> 
           </section> 
 
-          {/* ── Bottom widgets ── 3 equal fluid columns */}
           <section className="mt-12 grid grid-cols-3 gap-6"> 
 
-            {/* Weekly Activity */}
             <div className={`w-full rounded-xl border ${panel} px-5 py-5`}> 
               <div className="flex items-start justify-between gap-4"> 
                 <div className="min-w-0"> 
@@ -611,7 +494,8 @@ export default function Dashboard() {
               </div> 
               
               <div className="mt-6 flex h-[172px] items-end justify-between gap-1.5"> 
-                {(weeklyData.data.length > 0 ? weeklyData.data : Array(7).fill({count: 0})).map((item, index) => ( 
+                {/* BURASI KORUMAYA ALINDI */}
+                {(weeklyData?.data?.length > 0 ? weeklyData.data : Array(7).fill({count: 0})).map((item, index) => ( 
                   <div key={index} className="flex flex-1 flex-col items-center gap-2"> 
                     <span className="text-[11px] font-medium">{item.count}</span> 
                     
@@ -629,10 +513,7 @@ export default function Dashboard() {
               <p className="mt-5 text-[12px] leading-[16px] text-violet-400">{weeklyData.total_this_week} applications this week</p> 
               <p className={`${softText} mt-2 text-[11px] leading-[15px]`}>↗ {weeklyData.change_percentage}% compared to last week</p> 
             </div>
-            {/* ------------------------------------------------------------------------------------- */}
 
-            {/* AI Resume Analyzer */}
-            {/* AI Resume Analyzer */}
             <div className={`w-full rounded-xl border ${panel} px-5 py-5 flex flex-col`}>
               <h4 className="text-[17px] font-semibold leading-tight">AI Resume Analyzer</h4>
               
@@ -653,7 +534,8 @@ export default function Dashboard() {
                       <span className="text-[#FF5252]">⊗</span><span>Missing Keywords</span>
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2">
-                      {analyzerData.missing_keywords.map((tag) => (
+                      {/* BURASI KORUMAYA ALINDI */}
+                      {analyzerData?.missing_keywords?.map((tag) => (
                         <span key={tag} className="rounded-md bg-[#332E59] px-2.5 py-2 text-[10px] leading-none text-white/85">
                           {tag}
                         </span>
@@ -667,61 +549,60 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {/* BURADA DEĞİŞTİRDİK: <button> etiketi <Link> ile değiştirildi ve to="/analyzer" eklendi. */}
               <Link to="/analyzer" className="mt-auto pt-6 block">
                 <div className="flex w-full items-center justify-center gap-2 rounded-[16px] border border-violet-400/80 bg-gradient-to-r from-[#2A2340] via-[#31264A] to-[#261F3C] px-4 py-3.5 text-[14px] font-semibold text-violet-300 shadow-[0_12px_30px_rgba(124,77,255,0.14)] transition duration-200 hover:brightness-110">
                   <span>Analyze New Resume</span><span className="text-[16px] leading-none">↗</span>
                 </div>
               </Link>
             </div>
-            {/* ------------------------------------------------------------------------- */}
 
-            {/* Reminders */}
-            {/* --- GÜNCELLENEN KISIM: 5. Görev - Hatırlatıcılar Kartı (Genişlik ve Hiza Kusursuzlaştırıldı) --- */}
-            {/* 1. DÜZELTME: max-w-[326px] sınırı tamamen SİLİNDİ, sadece w-full bırakıldı. Böylece kart sağdaki boşluğu tam dolduracak. */}
             <div className={`h-[348px] w-full rounded-xl border ${panel} px-5 py-5 flex flex-col`}>
               <div className="flex items-center justify-between gap-4">
                 <Link to="/reminders" className="text-[17px] font-semibold leading-tight hover:text-violet-400 transition">
                   Reminders
                 </Link>
-                <Link to="/reminders" className="shrink-0 rounded-xl border border-violet-500 px-3 py-2 text-[12px] font-medium text-violet-500 transition hover:bg-violet-500/10">
+                <Link to="/add-reminder" className="shrink-0 rounded-xl border border-violet-500 px-3 py-2 text-[12px] font-medium text-violet-500 transition hover:bg-violet-500/10">
                   Add ⊕
                 </Link>
               </div>
               
-              {liveReminders.length > 0 ? (
+              {/* BURASI KORUMAYA ALINDI */}
+              {Array.isArray(liveReminders) && liveReminders.filter(r => !r.is_completed).length > 0 ? (
                 <div className="mt-4 space-y-2.5 overflow-y-auto pr-1">
-                  {liveReminders.map((reminder, index) => (
-                    <Link 
-                      key={reminder.id || index} 
-                      to="/reminders" 
-                      className={`flex h-[58px] w-full shrink-0 rounded-[10px] border-[1.2px] ${panel} px-3 py-2.5 transition hover:border-violet-400/50 items-center`}
-                    >
-                      <div className="flex w-full items-center justify-between gap-[10px]">
-                        <div className="flex min-w-0 items-start gap-3">
-                          <span className="shrink-0 text-[#F59E0B]">●</span>
-                          <div className="min-w-0">
-                            <p className="truncate text-[11px] font-medium leading-[14px]">
-                              {reminder.message}
-                            </p>
-                            <p className={`${softText} mt-1 truncate text-[10px] leading-[12px]`}>
-                              {reminder.company} · {reminder.due_date}
-                            </p>
+                  {liveReminders.filter(r => !r.is_completed).slice(0, 4).map((reminder) => {
+                    let dotColor = 'text-[#22C55E]'; 
+                    if (reminder.priority === 'Medium') dotColor = 'text-[#F59E0B]'; 
+                    if (reminder.priority === 'High') dotColor = 'text-[#FF5252]'; 
+
+                    return (
+                      <Link 
+                        key={reminder.id} 
+                        to="/reminders" 
+                        className={`flex h-[58px] w-full shrink-0 rounded-[10px] border-[1.2px] ${panel} px-3 py-2.5 transition hover:border-violet-400/50 items-center`}
+                      >
+                        <div className="flex w-full items-center justify-between gap-[10px]">
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className={`shrink-0 ${dotColor}`}>●</span>
+                            <div className="min-w-0">
+                              <p className="truncate text-[13px] font-semibold leading-[16px]">
+                                {reminder.title}
+                              </p>
+                              <p className={`${softText} mt-1 truncate text-[11px] leading-[12px]`}>
+                                {reminder.company} · {reminder.due_date || 'Pending'}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                        <span className={`${softText} shrink-0 text-[13px]`}>→</span>
-                      </div>
-                    </Link>
-                  ))}
+                      </Link>
+                    )
+                  })}
                 </div>
               ) : (
-                // 2. DÜZELTME: pb-[72px] eklendi. Yandaki AI kartının en altındaki butonun yüksekliği kadar alttan sahte bir boşluk bırakarak yazıyı tam olarak "Upload a resume..." ile aynı hizaya (yukarı) ittik.
                 <div className="flex flex-1 items-center justify-center text-center pb-[72px]">
                   <p className={`${softText} text-[12px]`}>No upcoming reminders.</p>
                 </div>
               )}
             </div>
-            {/* ---------------------------------------------------------------------------------------------------------- */}
 
           </section> 
         </main> 

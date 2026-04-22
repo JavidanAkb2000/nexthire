@@ -9,7 +9,9 @@ from .views import (
     application_pipeline,
     weekly_activity,
     analyzer_last_result,
-    dashboard_reminders        
+    dashboard_reminders,
+    reminders_list,
+    reminder_detail       
 )
 
 urlpatterns = [
@@ -33,4 +35,7 @@ urlpatterns = [
     path('analyzer/last-result/', analyzer_last_result, name='analyzer-last-result'),
 
     path('dashboard/reminders/', dashboard_reminders, name='dashboard-reminders'),
+
+    path('api-reminders/', reminders_list, name='api-reminders-list'),
+    path('api-reminders/<int:pk>/', reminder_detail, name='api-reminders-detail'),
 ]

@@ -7,6 +7,12 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from datetime import timedelta
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Reminder
+from .serializers import ReminderSerializer
 
 class JobApplicationListCreateView(generics.ListCreateAPIView):
     serializer_class = JobApplicationSerializer
@@ -231,3 +237,39 @@ def dashboard_reminders(request):
     serializer = ReminderSerializer(reminders, many=True)
     return Response(serializer.data)
 # ---------------------------------------------------------------
+
+# 1. Tüm Hatırlatıcıları Getir veya Yeni Ekle
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def reminders_list(request):
+    if request.method == 'GET':
+        reminders = Reminder.objects.filter(user=request.user).order_by('is_completed', 'due_date')
+        serializer = ReminderSerializer(reminders, many=True)
+        return Response(serializer.data)
+        
+    elif request.method == 'POST':
+        serializer = ReminderSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# 2. Hatırlatıcıyı Güncelle veya Sil
+@api_view(['PATCH', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def reminder_detail(request, pk):
+    try:
+        reminder = Reminder.objects.get(pk=pk, user=request.user)
+    except Reminder.DoesNotExist:
+        return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'PATCH':
+        serializer = ReminderSerializer(reminder, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        reminder.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

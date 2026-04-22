@@ -14,7 +14,7 @@ function SidebarIcon({ type, active }) {
   if (type === 'performance') return <svg {...common}><path d="M4 17l5-5 4 4 7-8" /><path d="M20 8h-5" /></svg>;
   return <svg {...common}><circle cx="12" cy="12" r="8.5" /><path d="M12 8v4l2.5 2.5" /></svg>;
 }
-
+  
 export default function AddApplication() {
   const { isDark } = useTheme();
   const { profile } = useProfile();
@@ -30,6 +30,14 @@ export default function AddApplication() {
   const brightText = isDark ? 'text-white' : 'text-[#171421]';
   const secondaryButton = isDark ? 'border-[#5D5870] bg-[#343341] text-white hover:bg-[#3A3949]' : 'border-[#CFC8E4] bg-[#EEEAF9] text-[#2A2144] hover:bg-[#E5DFFD]';
 
+  const navItems = [
+    { label: 'Dashboard', icon: 'dashboard', to: '/dashboard', active: false },
+    { label: 'Applications', icon: 'applications', to: '/applications', active: false },
+    { label: 'Analyzer', icon: 'analyzer', to: '/analyzer', active: false },
+    { label: 'Performance', icon: 'performance', to: '/performance', active: false },
+    { label: 'Reminders', icon: 'reminders', to: '/reminders', active: true },
+  ];
+  
   const updateField = (key, value) => setForm((current) => ({ ...current, [key]: value }));
 
   const handleSave = async (e) => {
@@ -41,7 +49,6 @@ export default function AddApplication() {
         status: form.status.toLowerCase(),
         salary: form.salary ? parseInt(form.salary, 10) : null,
         location: form.location,
-        // BURASI DÜZELDİ: applied_date yerine application_date yazıldı!
         application_date: form.appliedDate || new Date().toISOString().split('T')[0],
         notes: form.notes
       });
@@ -88,7 +95,6 @@ export default function AddApplication() {
 
           <section className={`mt-10 w-[980px] rounded-[18px] border ${panel} px-10 py-9`}>
             <div className="grid grid-cols-2 gap-6">
-              {/* BURASI GÜNCELLENDİ: Özel Regex ile sadece 0-9 rakamları kabul edilir, oklar tamamen kalkar. */}
               {[
                 ['Company', 'company', 'Google'], 
                 ['Role', 'role', 'Frontend Developer'],
@@ -98,11 +104,10 @@ export default function AddApplication() {
                 <div key={label}>
                   <p className={`${softText} text-[12px] uppercase`}>{label}</p>
                   <input 
-                    type="text" // 'number' yerine 'text' kullandık ki o çirkin oklar gitsin!
+                    type="text" 
                     value={form[key]} 
                     onChange={(e) => {
                       let val = e.target.value;
-                      // Eğer değişen alan Maaş (salary) ise, rakam olmayan HER ŞEYİ sil! (e, -, +, . vb.)
                       if (key === 'salary') {
                         val = val.replace(/[^0-9]/g, '');
                       }
@@ -113,10 +118,6 @@ export default function AddApplication() {
                   />
                 </div>
               ))}
-              
-              {/* Status ve Applied Date kısımları aşağıda aynı kalıyor... */}
-              
-              {/* ... (Status ve Applied Date kısımları aynı kalıyor) ... */}
               
               <div>
                 <p className={`${softText} text-[12px] uppercase`}>Status</p>
@@ -134,7 +135,6 @@ export default function AddApplication() {
               </div>
             </div>
 
-            {/* EKSİK OLAN NOTES (NOTLAR) KISMI GERİ GELDİ */}
             <div className="mt-6">
               <p className={`${softText} text-[12px] uppercase tracking-[0.08em]`}>Notes</p>
               <textarea

@@ -1,24 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ThemeToggle from '../components/ThemeToggle';
 import { useTheme } from '../context/useTheme';
 import { useProfile } from '../context/useProfile';
-
-const initialActiveReminders = [
-  { id: 1, task: 'Send portfolio update', company: 'Spotify', due: 'Due Today' },
-  { id: 2, task: 'Confirm interview time', company: 'Airbnb', due: 'Tomorrow' },
-  { id: 3, task: 'Submit design challenge', company: 'Figma', due: 'Due Today' },
-  { id: 4, task: 'Share updated resume', company: 'Stripe', due: 'Apr 08' },
-  { id: 5, task: 'Prepare case study deck', company: 'Notion', due: 'Apr 09' },
-  { id: 6, task: 'Follow up with recruiter', company: 'Canva', due: 'Apr 10' },
-  { id: 7, task: 'Review salary range', company: 'Meta', due: 'Apr 11' },
-];
-
-const initialCompletedReminders = [
-  { id: 101, task: 'Send thank-you email', company: 'Shopify', due: 'Done' },
-  { id: 102, task: 'Update CV headline', company: 'Dropbox', due: 'Done' },
-  { id: 103, task: 'Upload portfolio PDF', company: 'Google', due: 'Done' },
-];
+import api from '../api'; 
 
 function SidebarIcon({ type, active }) {
   const color = active ? '#8B5CF6' : 'currentColor';
@@ -89,8 +74,24 @@ export default function Reminders() {
   const { isDark } = useTheme();
   const { profile } = useProfile();
   const [activeTab, setActiveTab] = useState('Active');
-  const [activeReminders, setActiveReminders] = useState(initialActiveReminders);
-  const [completedReminders, setCompletedReminders] = useState(initialCompletedReminders);
+  const [activeReminders, setActiveReminders] = useState([]);
+  const [completedReminders, setCompletedReminders] = useState([]);
+
+  useEffect(() => {
+    fetchReminders();
+  }, []);
+
+  const fetchReminders = async () => {
+    try {
+      // BURASI DEĞİŞTİ: Başına 'applications/' eklendi
+      const res = await api.get('applications/api-reminders/');
+      const data = res.data;
+      setActiveReminders(Array.isArray(data) ? data.filter(r => !r.is_completed) : []);
+      setCompletedReminders(Array.isArray(data) ? data.filter(r => r.is_completed) : []);
+    } catch (error) {
+      console.error("Veriler çekilemedi", error);
+    }
+  };
 
   const shell = isDark ? 'bg-[#111119] text-white' : 'bg-[#F6F3FF] text-[#171421]';
   const sidebar = isDark ? 'bg-[#1B1B25] border-[#4A475B]' : 'bg-[#FBFAFE] border-[#D4D0DF]';
@@ -110,15 +111,15 @@ export default function Reminders() {
     { label: 'Reminders', icon: 'reminders', to: '/reminders', active: true },
   ];
 
-  const toggleReminder = (item) => {
-    if (activeTab === 'Active') {
-      setActiveReminders((current) => current.filter((entry) => entry.id !== item.id));
-      setCompletedReminders((current) => [{ ...item, due: 'Done' }, ...current]);
-      return;
+  // --- GÜNCELLENEN KISIM 2 (Tamamlama İşlemi) ---
+  const toggleReminder = async (item) => {
+    try {
+      // BURASI DEĞİŞTİ: Başına 'applications/' eklendi
+      await api.patch(`applications/api-reminders/${item.id}/`, { is_completed: !item.is_completed });
+      fetchReminders();
+    } catch (error) {
+      console.error("Güncelleme hatası", error);
     }
-
-    setCompletedReminders((current) => current.filter((entry) => entry.id !== item.id));
-    setActiveReminders((current) => [{ ...item, due: 'Due Today' }, ...current]);
   };
 
   return (
@@ -198,17 +199,13 @@ export default function Reminders() {
 
           <div className="mt-auto border-t border-inherit px-[18px] pb-7 pt-6">
             <Link to="/profile" className={`flex items-center gap-4 rounded-[18px] px-3 py-3 ${isDark ? 'bg-white/[0.03]' : 'bg-[#F1EFF7]'}`}>
+              {/* BURASI KORUMAYA ALINDI */}
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#5B48D6] text-[18px] font-semibold text-white">
-                {profile.fullName
-                  .split(' ')
-                  .slice(0, 2)
-                  .map((part) => part[0])
-                  .join('')
-                  .toUpperCase()}
+                {profile?.fullName ? profile.fullName.split(' ').slice(0, 2).map((part) => part[0]).join('').toUpperCase() : 'U'}
               </div>
               <div className="min-w-0">
-                <p className={`${brightText} truncate text-[15px] font-semibold leading-[18px]`}>{profile.fullName}</p>
-                <p className={`${softText} mt-1 truncate text-[12px] font-medium uppercase tracking-[0.08em]`}>{profile.membership}</p>
+                <p className={`${brightText} truncate text-[15px] font-semibold leading-[18px]`}>{profile?.fullName || 'User'}</p>
+                <p className={`${softText} mt-1 truncate text-[12px] font-medium uppercase tracking-[0.08em]`}>{profile?.membership || 'Member'}</p>
               </div>
             </Link>
           </div>
@@ -283,7 +280,7 @@ export default function Reminders() {
                           : ''
                       }`}
                     >
-                      {item.task}
+                      {item.title}
                     </span>
                     <span className={`mx-4 ${dividerText}`}>|</span>
                     <span
@@ -300,15 +297,21 @@ export default function Reminders() {
 
                 <span
                   className={`inline-flex min-w-[108px] shrink-0 items-center justify-center rounded-full border px-4 py-[5px] text-[14px] font-semibold ${
-                    item.due === 'Done'
+                    item.due_date === 'Done'
                       ? 'border-[#22C55E] bg-[#173A2A] text-[#2DDF7F]'
                       : 'border-[#F59E0B] bg-[#4B3212] text-[#FFB21E]'
                   }`}
                 >
-                  {item.due}
+                  {item.due_date}
                 </span>
               </div>
             ))}
+            
+            {visibleReminders.length === 0 && (
+                <div className={`py-12 text-center ${softText}`}>
+                    No {activeTab.toLowerCase()} reminders found.
+                </div>
+            )}
           </section>
         </main>
       </div>

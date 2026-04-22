@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import ThemeToggle from '../components/ThemeToggle';
 import { useTheme } from '../context/useTheme';
 import { useProfile } from '../context/useProfile';
+import api from '../api'; 
 
 function SidebarIcon({ type, active }) {
   const color = active ? '#8B5CF6' : 'currentColor';
@@ -39,6 +40,29 @@ export default function AddReminder() {
 
   const updateField = (key, value) => setForm((current) => ({ ...current, [key]: value }));
 
+  // --- GÜNCELLENEN KISIM ---
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (!form.title) {
+        alert("Lütfen en azından bir başlık (Reminder Title) girin!");
+        return;
+    }
+    try {
+      // BURASI DEĞİŞTİ: Başına 'applications/' eklendi
+      await api.post('applications/api-reminders/', {
+        title: form.title,
+        company: form.company,
+        due_date: form.dueDate || null,
+        priority: form.priority,
+        notes: form.notes
+      });
+      navigate('/reminders');
+    } catch (error) {
+      console.error("Hata:", error);
+      alert("Hatırlatıcı kaydedilemedi. Backend çalışıyor mu kontrol edin.");
+    }
+  };
+
   return (
     <div className={`min-h-screen font-sans ${shell}`}>
       <div className="grid min-h-screen grid-cols-[272px_1fr]">
@@ -63,12 +87,13 @@ export default function AddReminder() {
           </nav>
           <div className="mt-auto border-t border-inherit px-[18px] pb-7 pt-6">
             <Link to="/profile" className={`flex items-center gap-4 rounded-[18px] px-3 py-3 ${isDark ? 'bg-white/[0.03]' : 'bg-[#F1EFF7]'}`}>
+              {/* BURASI KORUMAYA ALINDI */}
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#5B48D6] text-[18px] font-semibold text-white">
-                {profile.fullName.split(' ').slice(0, 2).map((part) => part[0]).join('').toUpperCase()}
+                {profile?.fullName ? profile.fullName.split(' ').slice(0, 2).map((part) => part[0]).join('').toUpperCase() : 'U'}
               </div>
               <div className="min-w-0">
-                <p className={`${brightText} truncate text-[15px] font-semibold leading-[18px]`}>{profile.fullName}</p>
-                <p className={`${softText} mt-1 truncate text-[12px] font-medium uppercase tracking-[0.08em]`}>{profile.membership}</p>
+                <p className={`${brightText} truncate text-[15px] font-semibold leading-[18px]`}>{profile?.fullName || 'User'}</p>
+                <p className={`${softText} mt-1 truncate text-[12px] font-medium uppercase tracking-[0.08em]`}>{profile?.membership || 'Member'}</p>
               </div>
             </Link>
           </div>
@@ -136,20 +161,8 @@ export default function AddReminder() {
             </div>
 
             <div className="mt-8 flex gap-4">
-              <button
-                type="button"
-                onClick={() => navigate('/reminders')}
-                className={`h-[42px] rounded-[14px] border px-6 text-[15px] font-medium transition ${secondaryButton}`}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/reminders')}
-                className="h-[42px] rounded-[14px] bg-gradient-to-r from-[#7C4DFF] to-[#8D6BFF] px-7 text-[15px] font-semibold text-white shadow-[0_12px_28px_rgba(124,77,255,0.24)] transition hover:brightness-110"
-              >
-                Save Reminder
-              </button>
+              <button onClick={() => navigate('/reminders')} className={`h-[42px] rounded-[14px] border px-6 text-[15px] font-medium transition ${secondaryButton}`}>Cancel</button>
+              <button onClick={handleSave} className="h-[42px] rounded-[14px] bg-gradient-to-r from-[#7C4DFF] to-[#8D6BFF] px-7 text-[15px] font-semibold text-white shadow-[0_12px_28px_rgba(124,77,255,0.24)] transition hover:brightness-110">Save Reminder</button>
             </div>
           </section>
         </main>

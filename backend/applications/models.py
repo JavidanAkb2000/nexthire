@@ -35,20 +35,16 @@ class JobApplication(models.Model):
         ordering = ['-application_date']
 
 
+# GÜNCELLENEN KISIM: User yerine settings.AUTH_USER_MODEL kullanıyoruz.
 class Reminder(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.CASCADE, 
-        related_name='reminders'
-    )
-    task = models.CharField(max_length=255)
-    company = models.CharField(max_length=255)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    company = models.CharField(max_length=255, blank=True, null=True)
     due_date = models.DateField(blank=True, null=True)
+    priority = models.CharField(max_length=50, default='Medium') 
+    notes = models.TextField(blank=True, null=True)
     is_completed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.task} for {self.company} ({self.user.username})"
-
-    class Meta:
-        ordering = ['is_completed', 'due_date']
+        return f"{self.title} - {self.company}"
