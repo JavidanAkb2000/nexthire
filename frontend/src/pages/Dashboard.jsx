@@ -30,67 +30,12 @@ const badgeClasses = {
 
 function SidebarIcon({ type, active }) { 
   const color = active ? '#8B5CF6' : 'currentColor'; 
-
-  const common = { 
-    width: 18, 
-    height: 18, 
-    viewBox: '0 0 24 24', 
-    fill: 'none', 
-    stroke: color, 
-    strokeWidth: 1.9, 
-    strokeLinecap: 'round', 
-    strokeLinejoin: 'round', 
-  }; 
-
-  if (type === 'dashboard') { 
-    return ( 
-      <svg {...common}> 
-        <path d="M4 11.5L12 5l8 6.5" /> 
-        <path d="M6.5 10.5V18h11v-7.5" /> 
-      </svg> 
-    ); 
-  } 
-
-  if (type === 'applications') { 
-    return ( 
-      <svg {...common}> 
-        <path d="M8 7h12" /> 
-        <path d="M8 12h12" /> 
-        <path d="M8 17h12" /> 
-        <path d="M4 7h.01" /> 
-        <path d="M4 12h.01" /> 
-        <path d="M4 17h.01" /> 
-      </svg> 
-    ); 
-  } 
-
-  if (type === 'analyzer') { 
-    return ( 
-      <svg {...common}> 
-        <path d="M7 7l10 10" /> 
-        <path d="M14 6l4 4" /> 
-        <path d="M6 14l4 4" /> 
-        <path d="M11 4l2 2" /> 
-        <path d="M4 11l2 2" /> 
-      </svg> 
-    ); 
-  } 
-
-  if (type === 'performance') { 
-    return ( 
-      <svg {...common}> 
-        <path d="M4 17l5-5 4 4 7-8" /> 
-        <path d="M20 8h-5" /> 
-      </svg> 
-    ); 
-  } 
-
-  return ( 
-    <svg {...common}> 
-      <circle cx="12" cy="12" r="8.5" /> 
-      <path d="M12 8v4l2.5 2.5" /> 
-    </svg> 
-  ); 
+  const common = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: color, strokeWidth: 1.9, strokeLinecap: 'round', strokeLinejoin: 'round' }; 
+  if (type === 'dashboard') return <svg {...common}><path d="M4 11.5L12 5l8 6.5" /><path d="M6.5 10.5V18h11v-7.5" /></svg>; 
+  if (type === 'applications') return <svg {...common}><path d="M8 7h12" /><path d="M8 12h12" /><path d="M8 17h12" /><path d="M4 7h.01" /><path d="M4 12h.01" /><path d="M4 17h.01" /></svg>; 
+  if (type === 'analyzer') return <svg {...common}><path d="M7 7l10 10" /><path d="M14 6l4 4" /><path d="M6 14l4 4" /><path d="M11 4l2 2" /><path d="M4 11l2 2" /></svg>; 
+  if (type === 'performance') return <svg {...common}><path d="M4 17l5-5 4 4 7-8" /><path d="M20 8h-5" /></svg>; 
+  return <svg {...common}><circle cx="12" cy="12" r="8.5" /><path d="M12 8v4l2.5 2.5" /></svg>; 
 } 
 
 export default function Dashboard() { 
@@ -111,43 +56,64 @@ export default function Dashboard() {
   const [weeklyData, setWeeklyData] = useState({ data: [], total_this_week: 0 });
   const [liveReminders, setLiveReminders] = useState([]);
 
+  const refreshData = async () => {
+    try {
+      const [statsRes, pipeRes, weeklyRes, analyzerRes, remindersRes] = await Promise.all([
+        api.get('applications/dashboard/stats/'),
+        api.get('applications/applications/pipeline/'),
+        api.get('applications/dashboard/weekly-activity/'),
+        api.get('applications/analyzer/last-result/'),
+        api.get('applications/api-reminders/')
+      ]);
+
+      setLiveStats(statsRes.data);
+      setWeeklyData(weeklyRes.data);
+      setAnalyzerData(analyzerRes.data);
+      setLiveReminders(remindersRes.data);
+
+      const pData = pipeRes.data;
+      setLivePipeline([
+        { title: 'Applied', tone: 'blue', cards: pData.applied || [] },
+        { title: 'Screening', tone: 'yellow', cards: pData.screening || [] },
+        { title: 'Interview', tone: 'amber', cards: pData.interview || [] },
+        { title: 'Offer', tone: 'green', cards: pData.offer || [] },
+        { title: 'Rejected', tone: 'red', cards: pData.rejected || [] },
+      ]);
+    } catch (error) {
+      console.error("Veri çekme hatası:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const statsRes = await api.get('applications/dashboard/stats/');
-        setLiveStats(statsRes.data);
-      } catch (error) { console.error("Stats hatası:", error); }
-
-      try {
-        const pipeRes = await api.get('applications/applications/pipeline/');
-        const pData = pipeRes.data;
-        setLivePipeline([
-          { title: 'Applied', tone: 'blue', cards: pData.applied || [] },
-          { title: 'Screening', tone: 'yellow', cards: pData.screening || [] },
-          { title: 'Interview', tone: 'amber', cards: pData.interview || [] },
-          { title: 'Offer', tone: 'green', cards: pData.offer || [] },
-          { title: 'Rejected', tone: 'red', cards: pData.rejected || [] },
-        ]);
-      } catch (error) { console.error("Pipeline hatası:", error); }
-
-      try {
-        const weeklyRes = await api.get('applications/dashboard/weekly-activity/');
-        setWeeklyData(weeklyRes.data);
-      } catch (error) { console.error("Weekly hatası:", error); }
-
-      try {
-        const analyzerRes = await api.get('applications/analyzer/last-result/');
-        setAnalyzerData(analyzerRes.data);
-      } catch (error) { console.error("Analyzer hatası:", error); }
-
-      try {
-        const remindersRes = await api.get('applications/api-reminders/');
-        setLiveReminders(remindersRes.data);
-      } catch (error) { console.error("Reminders hatası:", error); }
-    };
-
-    fetchData();
+    refreshData();
   }, []);
+
+  const [draggedCard, setDraggedCard] = useState(null);
+
+  const handleDragStart = (e, card, sourceColumn) => {
+    setDraggedCard({ id: card.id, sourceColumn });
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = async (e, targetColumn) => {
+    e.preventDefault();
+    if (!draggedCard || draggedCard.sourceColumn === targetColumn) return;
+
+    try {
+      await api.patch(`applications/${draggedCard.id}/`, {
+        status: targetColumn.toLowerCase()
+      });
+      await refreshData();
+    } catch (error) {
+      console.error("Güncelleme hatası:", error);
+    }
+    setDraggedCard(null);
+  };
 
   const displayStats = [ 
     { label: 'Total applied', value: liveStats?.total_applied || '0', delta: `+${liveStats?.applied_this_week || 0} this week`, tone: 'blue' }, 
@@ -168,18 +134,14 @@ export default function Dashboard() {
       if (filters.status && column.title.toLowerCase() !== filters.status.toLowerCase()) { 
         return { ...column, cards: [] }; 
       } 
-
       const filteredCards = column.cards.filter(card => { 
         const matchesSearch =  
           card.company.toLowerCase().includes(deferredSearch.toLowerCase()) ||  
           card.role.toLowerCase().includes(deferredSearch.toLowerCase()); 
-          
         const matchesDate = filters.date === '' || card.age === filters.date; 
         const matchesRole = filters.role === '' || card.role.toLowerCase().includes(filters.role.toLowerCase()); 
-        
         return matchesSearch && matchesDate && matchesRole; 
       }); 
-
       return { ...column, cards: filteredCards }; 
     }); 
   }, [deferredSearch, filters, livePipeline]);
@@ -191,23 +153,12 @@ export default function Dashboard() {
   const brightText = isDark ? 'text-white' : 'text-[#171421]'; 
 
   const uniqueDates = Array.from(new Set(livePipeline.flatMap(col => col.cards.map(c => c.age)))); 
-
-  const today = new Intl.DateTimeFormat('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  }).format(new Date());
+  const today = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date());
 
   const todayObj = new Date();
   const lastWeekObj = new Date();
   lastWeekObj.setDate(todayObj.getDate() - 6);
-
-  const formatRangeDate = (date) => {
-    const d = String(date.getDate()).padStart(2, '0');
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const y = date.getFullYear();
-    return `${d}.${m}.${y}`;
-  };
+  const formatRangeDate = (date) => `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`;
   const dateRangeStr = `${formatRangeDate(lastWeekObj)}-${formatRangeDate(todayObj)}`;
 
   const firstName = profile?.fullName ? profile.fullName.split(' ')[0] : 'User';
@@ -217,20 +168,13 @@ export default function Dashboard() {
       <div className="flex min-h-screen">
         <aside className={`flex w-[272px] shrink-0 flex-col border-r ${sidebar}`}> 
           <div className="border-b border-inherit px-[18px] pb-7 pt-8"> 
-            <h1 
-              className={`${brightText} whitespace-nowrap`} 
-              style={{ fontFamily: 'Sitka, Georgia, serif', fontWeight: 700, fontSize: '34px', lineHeight: '34px', letterSpacing: '0%' }} 
-            > 
+            <h1 className={`${brightText} whitespace-nowrap`} style={{ fontFamily: 'Sitka, Georgia, serif', fontWeight: 700, fontSize: '34px', lineHeight: '34px' }}> 
               NextHire<span className="align-top text-[0.45em] text-violet-500">•</span> 
             </h1> 
           </div> 
-
           <div className="px-[18px] pt-6"> 
-            <p className={`${softText.toString()} uppercase`} style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 500, fontSize: '9px', lineHeight: '16px', letterSpacing: '2%' }}> 
-              Main Menu 
-            </p> 
+            <p className={`${softText} uppercase text-[9px] font-medium`}>Main Menu</p> 
           </div> 
-
           <nav className="mt-14 flex flex-1 flex-col gap-4 px-[10px]"> 
             {[ 
               { label: 'Dashboard', icon: 'dashboard', active: true, to: '/dashboard' }, 
@@ -238,29 +182,16 @@ export default function Dashboard() {
               { label: 'Analyzer', icon: 'analyzer', active: false, to: '/analyzer' }, 
               { label: 'Performance', icon: 'performance', active: false, to: '/performance' }, 
               { label: 'Reminders', icon: 'reminders', active: false, to: '/reminders' }, 
-            ].map((item) => { 
-              const content = ( 
-                <div className={`flex min-h-[56px] items-center gap-4 rounded-[16px] border px-6 py-4 ${item.active ? 'relative border-[#504B63] bg-[#2C2345] text-[#8B5CF6]' : isDark ? 'border-transparent text-white/90' : 'border-transparent text-[#171421]'}`}> 
+            ].map((item) => (
+              <Link key={item.label} to={item.to}>
+                <div className={`flex min-h-[56px] items-center gap-4 rounded-[16px] border px-6 py-4 ${item.active ? 'relative border-[#504B63] bg-[#2C2345] text-[#8B5CF6]' : 'border-transparent text-inherit opacity-90'}`}> 
                   {item.active && <span className="absolute left-[10px] top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-[#8B5CF6]" />} 
                   <SidebarIcon type={item.icon} active={Boolean(item.active)} /> 
-                  <span className="whitespace-nowrap" style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: item.active ? 500 : 400, fontSize: '16px', lineHeight: '100%', letterSpacing: '0%' }}> 
-                    {item.label} 
-                  </span> 
+                  <span className="whitespace-nowrap text-[16px]">{item.label}</span> 
                 </div> 
-              ); 
-
-              if (!item.to) { 
-                return <div key={item.label}>{content}</div>; 
-              } 
-
-              return ( 
-                <Link key={item.label} to={item.to}> 
-                  {content} 
-                </Link> 
-              ); 
-            })} 
+              </Link>
+            ))} 
           </nav> 
-
           <div className="mt-auto border-t border-inherit px-[18px] pb-7 pt-6"> 
             <Link to="/profile" className={`flex items-center gap-4 rounded-[18px] px-3 py-3 ${isDark ? 'bg-white/[0.03]' : 'bg-[#F1EFF7]'}`}> 
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#5B48D6] text-[18px] font-semibold text-white"> 
@@ -277,12 +208,8 @@ export default function Dashboard() {
         <main className="flex min-w-0 flex-1 flex-col px-8 pb-10 pt-4 xl:px-11">
           <header className={`flex items-start justify-between border-b pb-4 ${isDark ? 'border-[#4A475B]' : 'border-[#D4D0DF]'}`}> 
             <div className="shrink-0"> 
-              <h2 style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 600, fontSize: '24px', lineHeight: '100%', letterSpacing: '0%', verticalAlign: 'middle' }}> 
-                Hello, {firstName}!
-              </h2> 
-              <p className={`mt-2 ${softText}`} style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 500, fontSize: '10px', lineHeight: '100%', letterSpacing: '2%', verticalAlign: 'middle' }}> 
-                {today} 
-              </p> 
+              <h2 className="text-[24px] font-semibold">Hello, {firstName}!</h2> 
+              <p className={`mt-2 ${softText} text-[10px] uppercase tracking-wider`}>{today}</p> 
             </div> 
 
             <div className="flex flex-1 items-center justify-center px-6"> 
@@ -405,12 +332,8 @@ export default function Dashboard() {
             </div> 
 
             <div className="flex shrink-0 items-center gap-4"> 
-              <Link 
-                to="/add-application" 
-                className="flex h-10 w-[215px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#7C4DFF] to-[#8D6BFF] px-8 text-white shadow-[0_12px_28px_rgba(124,77,255,0.24)] transition duration-200 hover:-translate-y-0.5 hover:brightness-110" 
-              > 
-                <span className="font-medium">New Application</span> 
-                <span className="text-lg leading-none">⊕</span> 
+              <Link to="/add-application" className="flex h-10 w-[215px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#7C4DFF] to-[#8D6BFF] text-white shadow-lg transition hover:-translate-y-0.5"> 
+                <span className="font-medium">New Application</span><span className="text-lg">⊕</span> 
               </Link> 
               <ThemeToggle /> 
             </div> 
@@ -418,62 +341,45 @@ export default function Dashboard() {
 
           <section className="mt-8 flex gap-5"> 
             {displayStats.map((stat) => ( 
-              <div key={stat.label} className={`flex-1 min-w-0 rounded-xl border px-6 py-4 text-left shadow-sm ${panel} ${toneClasses[stat.tone]}`}> 
-                <div className="flex h-full flex-col justify-between gap-4"> 
-                  <div className="min-w-0"> 
-                    <p className={`${softText} text-[12px] font-medium leading-[16px] tracking-[0.01em]`}>{stat.label}</p> 
-                    <p className={`${brightText} mt-2 text-[24px] font-semibold leading-none`}>{stat.value}</p> 
-                  </div> 
-                  <div className="flex items-center justify-between gap-2 text-[12px]"> 
-                    <span className={`${stat.tone === 'red' ? 'text-[#FF5252]' : 'text-[#22C55E]'} shrink-0 font-medium leading-none`}> 
-                      {stat.delta} 
-                    </span> 
-                    <Link to="/applications" className={`${softText} shrink-0 text-[12px] cursor-pointer hover:underline`}>See more</Link> 
-                  </div> 
+              <div key={stat.label} className={`flex-1 rounded-xl border px-6 py-4 ${panel} ${toneClasses[stat.tone]}`}> 
+                <p className={`${softText} text-[12px] font-medium`}>{stat.label}</p> 
+                <p className={`${brightText} mt-2 text-[24px] font-semibold`}>{stat.value}</p> 
+                <div className="mt-3 flex items-center justify-between text-[12px]"> 
+                  <span className={stat.tone === 'red' ? 'text-[#FF5252]' : 'text-[#22C55E]'}>{stat.delta}</span> 
+                  <Link to="/applications" className={`${softText} hover:underline`}>See more</Link> 
                 </div> 
               </div> 
             ))} 
           </section> 
 
           <section className="mt-10"> 
+            {/* --- SEE ALL BUTONU GERİ GETİRİLDİ --- */}
             <div className="flex items-end justify-between"> 
               <div> 
-                <h3 style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 500, fontSize: '20px', lineHeight: '100%', letterSpacing: '0%' }}> 
-                  Application Pipeline 
-                </h3> 
-                <p className={`mt-3 ${softText}`} style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 400, fontSize: '14px', lineHeight: '100%', letterSpacing: '0%' }}> 
-                  Drag cards to update status 
-                </p> 
+                <h3 className="text-[20px] font-semibold">Application Pipeline</h3> 
+                <p className={`mt-2 ${softText} text-[14px]`}>Drag cards to update status</p> 
               </div> 
-
               <Link to="/applications" className="flex h-8 w-[125px] items-center justify-center gap-1 rounded-xl border-[1.5px] border-violet-500 text-sm text-violet-500 transition hover:bg-violet-500 hover:text-white"> 
                 See All <span>→</span> 
               </Link> 
             </div> 
+            {/* --------------------------------------- */}
 
             <div className="mt-8 grid grid-cols-5 gap-4"> 
               {filteredPipeline.map((column) => ( 
-                <div key={column.title} className="min-w-0 w-full"> 
-                  <div className={`flex h-8 w-full items-center gap-2 rounded-lg border-[1.5px] px-3 ${badgeClasses[column.tone]}`}> 
-                    <span className="text-xs shrink-0">●</span> 
-                    <span className="truncate font-medium text-sm">{column.title}</span> 
+                <div key={column.title} onDragOver={handleDragOver} onDrop={(e) => handleDrop(e, column.title)} className="min-w-0"> 
+                  <div className={`flex h-8 items-center gap-2 rounded-lg border-[1.5px] px-3 ${badgeClasses[column.tone]}`}> 
+                    <span className="text-xs">●</span><span className="truncate text-sm font-medium">{column.title}</span> 
                   </div> 
-
-                  <div className="mt-4 space-y-3"> 
-                    {column.cards.map((card, index) => ( 
-                      <div key={`${column.title}-${index}`} className={`w-full rounded-xl border ${panel} px-3 py-3 transition-all hover:border-violet-400`}> 
-                        <div className="flex flex-col justify-center gap-1"> 
-                          <p className={`${brightText} truncate text-[13px] font-semibold leading-[18px]`}>{card.company}</p> 
-                          <p className={`${softText} truncate text-[11px] leading-[14px]`}>{card.role}</p> 
-                          <p className={`${softText} text-[11px] leading-none`}>{card.age}</p> 
-                        </div> 
+                  <div className="mt-4 space-y-3 min-h-[150px]"> 
+                    {column.cards.map((card, idx) => ( 
+                      <div key={card.id} draggable onDragStart={(e) => handleDragStart(e, card, column.title)} className={`rounded-xl border ${panel} p-3 cursor-grab active:cursor-grabbing hover:border-violet-400 transition-all`}> 
+                        <p className={`${brightText} truncate text-[13px] font-semibold`}>{card.company}</p> 
+                        <p className={`${softText} truncate text-[11px] mt-1`}>{card.role}</p> 
+                        <p className={`${softText} text-[11px] mt-1`}>{card.age}</p> 
                       </div> 
-                    ))} 
-                    {column.cards.length === 0 && ( 
-                      <div className={`w-full rounded-xl border border-dashed flex items-center justify-center py-8 ${isDark ? 'border-white/5' : 'border-gray-100'}`}> 
-                        <span className="text-[10px] opacity-20">No matches</span> 
-                      </div> 
-                    )} 
+                    ))}
+                    {column.cards.length === 0 && <div className="border border-dashed border-gray-500/20 rounded-xl h-24 flex items-center justify-center opacity-20 text-[10px]">Empty</div>}
                   </div> 
                 </div> 
               ))} 
@@ -481,80 +387,46 @@ export default function Dashboard() {
           </section> 
 
           <section className="mt-12 grid grid-cols-3 gap-6"> 
-
-            <div className={`w-full rounded-xl border ${panel} px-5 py-5`}> 
-              <div className="flex items-start justify-between gap-4"> 
-                <div className="min-w-0"> 
-                  <h4 className="text-[17px] font-semibold leading-tight">Weekly Activity</h4> 
-                  <p className={`${softText} mt-2 text-[11px] leading-[15px]`}>Application sent per day</p> 
-                </div> 
-                <span className="shrink-0 rounded-md bg-[#332E59] px-3 py-1 text-[9px] text-white/80 whitespace-nowrap">
-                  {dateRangeStr}
-                </span> 
-              </div> 
-              
+            <div className={`rounded-xl border ${panel} p-5`}> 
+              <div className="flex justify-between items-start">
+                <h4 className="text-[17px] font-semibold">Weekly Activity</h4>
+                <span className="text-[9px] bg-[#332E59] px-2 py-1 rounded text-white/80">{dateRangeStr}</span>
+              </div>
               <div className="mt-6 flex h-[172px] items-end justify-between gap-1.5"> 
-                {/* BURASI KORUMAYA ALINDI */}
                 {(weeklyData?.data?.length > 0 ? weeklyData.data : Array(7).fill({count: 0})).map((item, index) => ( 
                   <div key={index} className="flex flex-1 flex-col items-center gap-2"> 
                     <span className="text-[11px] font-medium">{item.count}</span> 
-                    
                     <div className="flex h-[148px] w-full items-end rounded-full bg-[#322A57] p-[4px]"> 
                       <div 
-                        className={`w-full transition-all duration-500 rounded-b-full ${
-                          item.count > 0 
-                            ? 'bg-gradient-to-t from-[#7C4DFF] to-[#5D4AB5] rounded-t-full' 
-                            : 'opacity-0' 
-                        }`}
+                        className={`w-full transition-all duration-500 rounded-b-full ${item.count > 0 ? 'bg-gradient-to-t from-[#7C4DFF] to-[#5D4AB5] rounded-t-full' : 'opacity-0'}`}
                         style={{ height: `${Math.min(140, 60 + (item.count || 0) * 10)}px` }} 
                       /> 
                     </div> 
                   </div> 
                 ))} 
-              </div>
+              </div> 
               <p className="mt-5 text-[12px] leading-[16px] text-violet-400">{weeklyData.total_this_week} applications this week</p> 
-              <p className={`${softText} mt-2 text-[11px] leading-[15px]`}>↗ {weeklyData.change_percentage}% compared to last week</p> 
+              <p className={`${softText} mt-1 text-[11px]`}>↗ {weeklyData.change_percentage}% compared to last week</p> 
             </div>
 
-            <div className={`w-full rounded-xl border ${panel} px-5 py-5 flex flex-col`}>
-              <h4 className="text-[17px] font-semibold leading-tight">AI Resume Analyzer</h4>
-              
-              <p className={`${softText} mt-2 text-[11px] leading-[15px]`}>
-                {analyzerData.last_scan ? `Last Scan: ${analyzerData.last_scan}` : 'No scan yet'}
-              </p>
-
+            <div className={`rounded-xl border ${panel} p-5 flex flex-col`}>
+              <h4 className="text-[17px] font-semibold">AI Resume Analyzer</h4>
+              <p className={`${softText} text-[11px] mt-2`}>Last Scan: {analyzerData.last_scan || 'Never'}</p>
               {analyzerData.match_score !== null ? (
-                <div className="mt-6 flex items-center justify-between gap-4">
-                  <div className="relative flex h-[122px] w-[122px] shrink-0 items-center justify-center rounded-full border-[12px] border-[#7C4DFF] border-r-white/50 border-t-white/60">
-                    <div className="text-center">
-                      <p className="text-[18px] font-semibold leading-none">{analyzerData.match_score}%</p>
-                      <p className={`${softText} mt-1 text-[11px]`}>Match</p>
-                    </div>
+                <div className="mt-6 flex items-center gap-4">
+                  <div className="h-24 w-24 rounded-full border-[10px] border-[#7C4DFF] border-r-white/20 flex items-center justify-center">
+                    <span className="text-lg font-bold">{analyzerData.match_score}%</span>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 text-[12px] font-medium leading-[16px]">
-                      <span className="text-[#FF5252]">⊗</span><span>Missing Keywords</span>
-                    </div>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {/* BURASI KORUMAYA ALINDI */}
-                      {analyzerData?.missing_keywords?.map((tag) => (
-                        <span key={tag} className="rounded-md bg-[#332E59] px-2.5 py-2 text-[10px] leading-none text-white/85">
-                          {tag}
-                        </span>
-                      ))}
+                  <div className="flex-1">
+                    <p className="text-[11px] font-bold">Missing Keywords</p>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {analyzerData.missing_keywords?.map(kw => <span key={kw} className="bg-[#332E59] text-[10px] px-2 py-1 rounded">{kw}</span>)}
                     </div>
                   </div>
                 </div>
-              ) : (
-                <div className="mt-6 flex flex-1 items-center justify-center">
-                  <p className={`${softText} text-[12px]`}>Upload a resume to see your match score.</p>
-                </div>
-              )}
-
-              <Link to="/analyzer" className="mt-auto pt-6 block">
-                <div className="flex w-full items-center justify-center gap-2 rounded-[16px] border border-violet-400/80 bg-gradient-to-r from-[#2A2340] via-[#31264A] to-[#261F3C] px-4 py-3.5 text-[14px] font-semibold text-violet-300 shadow-[0_12px_30px_rgba(124,77,255,0.14)] transition duration-200 hover:brightness-110">
-                  <span>Analyze New Resume</span><span className="text-[16px] leading-none">↗</span>
-                </div>
+              ) : <p className="mt-6 text-[12px] opacity-40">Upload a resume to see your match score.</p>}
+              <Link to="/analyzer" className="mt-auto pt-4">
+                <div className="bg-gradient-to-r from-[#2A2340] to-[#261F3C] border border-violet-400/50 p-3 rounded-xl text-center text-violet-300 text-xs font-bold hover:brightness-110">Analyze New Resume ↗</div>
               </Link>
             </div>
 
@@ -568,7 +440,6 @@ export default function Dashboard() {
                 </Link>
               </div>
               
-              {/* BURASI KORUMAYA ALINDI */}
               {Array.isArray(liveReminders) && liveReminders.filter(r => !r.is_completed).length > 0 ? (
                 <div className="mt-4 space-y-2.5 overflow-y-auto pr-1">
                   {liveReminders.filter(r => !r.is_completed).slice(0, 4).map((reminder) => {
@@ -605,7 +476,6 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
-
           </section> 
         </main> 
       </div> 
