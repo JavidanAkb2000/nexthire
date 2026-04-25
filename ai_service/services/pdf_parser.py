@@ -58,12 +58,13 @@ def get_resume_content(path: Path) -> str:
 
 
 if __name__ == "__main__":
+    # testing
     content = get_resume_content(PATH_TO_RESUME)
 
     if content:
         print("Mətn uğurla çıxarıldı:")
-        print(content[:500] + "...")  # İlk 500 simvolu göstərək
+        print(content[:500] + "...")  # The very first 500 characters.
         print(f"\nTip: {type(content)}")
     else:
         print("Mətn çıxarmaq mümkün olmadı.")
-        sys.exit(1)  # Proqramı xəta kodu ilə bitiririk
+        sys.exit(1)  # We end the program with error code
