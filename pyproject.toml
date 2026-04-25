@@ -10,4 +10,11 @@ dependencies = [
     "djangorestframework>=3.16.1",
     "djangorestframework-simplejwt>=5.5.1",
     "mysqlclient>=2.2.8",
+    "pypdf>=6.10.2",
+    "requests>=2.33.1",
+]
+
+[tool.uv.workspace]
+members = [
+    "ai_service",
 ]

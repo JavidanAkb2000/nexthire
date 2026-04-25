@@ -14,10 +14,10 @@ def build_secure_messages(resume_text: str, job_description: str) -> list:
     # 3. SECURE SEPARATION: System holds the rules, User holds the data.
     system_prompt = """You are a professional HR Data Analyst.
         Analyze the following resume strictly against the provided job description.
-        
+
         Your response must be a SINGLE VALID JSON object. 
         Do not include any preamble, markdown code blocks (like ```json), or postscript.
-        
+
         Required JSON Structure:
         {
           "match_score": 0-100 (integer),
@@ -25,8 +25,8 @@ def build_secure_messages(resume_text: str, job_description: str) -> list:
           "missing_keywords": [],
           "strengths": [],
           "improvements": [],
-          "verdict": ""
-}"""
+          "verdict": "" (STRICT: must be under 100 characters. One concise sentence only.)
+        }"""
 
     user_prompt = f"""JOB DESCRIPTION:
             {job_description}

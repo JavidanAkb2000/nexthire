@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'applications',
     'rest_framework_simplejwt',
     'corsheaders',
+    'analyzer'
 ]
 
 MIDDLEWARE = [
@@ -83,7 +84,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'nexthire_db',
         'USER': 'root',
-        'PASSWORD': '12345',
+        'PASSWORD': 'root',
         'HOST': 'localhost',
         'PORT': '3306',
     }

@@ -11,6 +11,9 @@ from groq import Groq
 from services.prompt_builder import build_secure_messages
 from services.pdf_parser import get_resume_content, PATH_TO_RESUME
 
+# from ai_service.services.prompt_builder import  build_secure_messages
+# from ai_service.services.pdf_parser import get_resume_content, PATH_TO_RESUME
+
 load_dotenv()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
@@ -31,7 +34,7 @@ def analyze_with_groq(resume_text: str, job_description: str) -> Dict[str, Any]:
     try:
         # 2. Pass the built messages directly to the API
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="qwen/qwen3-32b",
             messages=messages,
             temperature=0.1,
             max_tokens=2000,
