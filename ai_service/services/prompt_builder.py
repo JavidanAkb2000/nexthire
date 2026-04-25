@@ -20,7 +20,7 @@ def build_secure_messages(resume_text: str, job_description: str) -> list:
         
         Required JSON Structure:
         {
-          "match_score": 0,
+          "match_score": 0-100 (integer),
           "matched_keywords": [],
           "missing_keywords": [],
           "strengths": [],

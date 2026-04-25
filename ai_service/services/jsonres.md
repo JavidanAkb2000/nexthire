@@ -1,5 +1,5 @@
 {
-    "match_score": 0.6,
+    "match_score": 60,
     "matched_keywords": [
         "AI Engineer",
         "Python",
@@ -18,7 +18,7 @@
     ],
     "improvements": [
         "Lack of experience with LLMs and RAG",
-        "No direct experience with large language models"
+        "No direct experience with AI system deployment mentioned in the job description"
     ],
     "verdict": "Partially Qualified"
 }
