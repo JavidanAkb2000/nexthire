@@ -58,6 +58,7 @@ def get_resume_content(path: Path) -> str:
 
 
 if __name__ == "__main__":
+    # testing
     content = get_resume_content(PATH_TO_RESUME)
 
     if content:
