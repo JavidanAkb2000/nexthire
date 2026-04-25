@@ -1,6 +1,6 @@
 import sys
 import json
-from pdf_parser import extract_text_from_pdf, get_resume_content, PATH_TO_RESUME
+from services.pdf_parser import extract_text_from_pdf, get_resume_content, PATH_TO_RESUME
 
 def build_secure_messages(resume_text: str, job_description: str) -> list:
     # 1. Clean the content

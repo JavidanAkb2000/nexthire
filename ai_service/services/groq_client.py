@@ -7,8 +7,9 @@ from dotenv import load_dotenv
 from groq import Groq
 
 # Importing Modules
-from prompt_builder import build_secure_messages
-from pdf_parser import get_resume_content, PATH_TO_RESUME
+# Importing Modules
+from services.prompt_builder import build_secure_messages
+from services.pdf_parser import get_resume_content, PATH_TO_RESUME
 
 load_dotenv()
 

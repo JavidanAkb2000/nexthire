@@ -22,3 +22,13 @@
     ],
     "verdict": "Partially Qualified"
 }
+
+# Output after schema
+--- Test 1: Standard Integer Output ---
+✅ Validation Successful!
+Final match_score for React: 60 (Type: int)
+
+--- Test 2: The Decimal Trap (0.66) ---
+✅ Validation Successful!
+Groq Input: 0.66 -> Final match_score for React: 66 (Type: int)
+

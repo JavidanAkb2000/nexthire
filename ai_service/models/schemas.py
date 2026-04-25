@@ -12,7 +12,7 @@ class AnalyzeResponse(BaseModel):
     missing_keywords: List[str] = Field(default_factory=list)
     strengths: List[str] = Field(default_factory=list)
     improvements: List[str] = Field(default_factory=list)
-    verdict: str = Field(..., min_length=1, max_length=50)
+    verdict: str = Field(..., min_length=1, max_length=250)
 
     @field_validator('match_score')
     @classmethod
