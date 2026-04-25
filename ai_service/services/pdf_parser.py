@@ -61,9 +61,9 @@ if __name__ == "__main__":
     content = get_resume_content(PATH_TO_RESUME)
 
     if content:
-        print("Mətn uğurla çıxarıldı:")
-        print(content[:500] + "...")  # İlk 500 simvolu göstərək
-        print(f"\nTip: {type(content)}")
+        print("Content is extracted succesfully:")
+        print(content[:500] + "...")  # The very first 500 characters
+        print(f"\nType: {type(content)}")
     else:
-        print("Mətn çıxarmaq mümkün olmadı.")
-        sys.exit(1)  # Proqramı xəta kodu ilə bitiririk
+        print("Extraction failed.")
+        sys.exit(1)  # We end the program with an error code
