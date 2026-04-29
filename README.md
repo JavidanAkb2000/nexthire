@@ -427,4 +427,8 @@ This project follows **Scrum methodology** with 7 sprints in bi-weekly cycles.
 
 ---
 
+<<<<<<< HEAD
 # All rights reserved · NextHire · Vizja University · 2026
+=======
+# All rights reserved · NextHire · Vizja University · 2026
+>>>>>>> 5f87d9e3ad12405b35088e987232dcb1b0df65c0
