@@ -1,5 +1,6 @@
 # NextHire 🚀
 Smart Job Application Tracker + AI Resume Analyzer
+Link to video - https://www.youtube.com/watch?v=2_amtOEWLSk
 
 > Developed at **Vizja University** — Full-Code Development Track · March–June 2026
 
